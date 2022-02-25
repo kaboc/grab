@@ -1,0 +1,46 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  errors:
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+    deprecated_member_use_from_same_package: warning
+    unnecessary_null_comparison: warning
+
+linter:
+  rules:
+    use_key_in_widget_constructors: false
+
+    always_declare_return_types: true
+    avoid_catches_without_on_clauses: true
+    avoid_catching_errors: true
+    avoid_dynamic_calls: true
+    avoid_type_to_string: true
+    avoid_void_async: true
+    eol_at_end_of_file: true
+    no_leading_underscores_for_library_prefixes: true
+    no_leading_underscores_for_local_identifiers: true
+    no_runtimeType_toString: true
+    parameter_assignments: true
+    prefer_final_in_for_each: true
+    prefer_final_locals: true
+    prefer_if_elements_to_conditional_expressions: true
+    prefer_mixin: true
+    prefer_single_quotes: true
+    require_trailing_commas: true
+    sized_box_shrink_expand: true
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    test_types_in_equals: true
+    unnecessary_await_in_return: true
+    unnecessary_constructor_name: true
+    unnecessary_late: true
+    unnecessary_parenthesis: true
+    unnecessary_statements: true
+    use_decorated_box: true
+    use_is_even_rather_than_modulo: true
+    use_named_constants: true

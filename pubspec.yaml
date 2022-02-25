@@ -1,0 +1,18 @@
+name: grab
+description: A flutter package to control rebuilds of a widget based on updates of Listenables.
+version: 0.0.1
+homepage: https://github.com/kaboc/grab
+
+environment:
+  sdk: ">=2.16.1 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^1.0.4
