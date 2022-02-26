@@ -49,7 +49,7 @@ class _Counter extends StatelessWidget with Grab {
   @override
   Widget build(BuildContext context) {
     // With context.grab(), the widget is rebuilt every time
-    // the value of CounterNotifier is updated.
+    // the value of the notifier is updated.
     final count = context.grab<int>(_notifier);
 
     return Text(
@@ -65,9 +65,9 @@ class _SlowCounter extends StatelessWidget with Grab {
   @override
   Widget build(BuildContext context) {
     // This count increases at one third the pace of the value
-    // of CounterNotifier, like 0, 0, 0, 1, 1, 1, 2, 2, 2...
-    // Updating the value of CounterNotifier doesn't trigger
-    // rebuilds while the result of grabAt() here remains the same.
+    // of the notifier, like 0, 0, 0, 1, 1, 1, 2, 2, 2...
+    // Updating the value of the notifier doesn't trigger rebuilds
+    // while the result of grabAt() here remains the same.
     final count = context.grabAt(_notifier, (int v) => v ~/ 3);
 
     return Text(

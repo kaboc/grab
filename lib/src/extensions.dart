@@ -39,9 +39,9 @@ part 'error.dart';
 /// {@endtemplate}
 extension GrabBuildContext on BuildContext {
   /// Returns an object of type [S], which is the [listenable] itself,
-  /// or its value if the listenable is a [ValueListenable].
+  /// or its value if the Listenable is a [ValueListenable].
   ///
-  /// This method listens to the listenable, and rebuilds the widget
+  /// This method listens to the Listenable, and rebuilds the widget
   /// that the [BuildContext] this method is used on belongs to,
   /// every time it is updated.
   ///
@@ -64,8 +64,8 @@ extension GrabBuildContext on BuildContext {
   /// time there is a change in the value returned by the [selector].
   ///
   /// The callback of the selector receives an object of type [R].
-  /// If the listenable is a [ValueListenable], the object is its value.
-  /// Otherwise, it is the listenable itself.
+  /// If the Listenable is a [ValueListenable], the object is its value.
+  /// Otherwise, it is the Listenable itself.
   ///
   /// ```dart
   /// final notifier = ValueNotifier(
@@ -84,7 +84,7 @@ extension GrabBuildContext on BuildContext {
   /// ```
   ///
   /// Instead of writing the concrete type of [R] in the parameter of
-  /// the selector, the types of the listenable and the object passed
+  /// the selector, the types of the Listenable and the object passed
   /// to the selector can be specified as below:
   ///
   /// ```dart
