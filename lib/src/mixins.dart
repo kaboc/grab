@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'element.dart';
+import 'errors.dart';
 
 /// A mixin used on [StatelessWidget] for making Grab available
 /// in the widget.

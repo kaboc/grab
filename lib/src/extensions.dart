@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'element.dart';
+import 'errors.dart';
 
-part 'error.dart';
 
 /// Extensions on [BuildContext] used for Grab.
 ///
@@ -48,7 +48,7 @@ extension GrabBuildContext on BuildContext {
   /// {@macro grab_example}
   S grab<S>(Listenable listenable) {
     final element = this;
-    assert(element is GrabElement, _kErrorMessage);
+    assert(element is GrabElement, GrabMixinError.message);
 
     return grabAt(
       listenable,
@@ -110,7 +110,7 @@ extension GrabBuildContext on BuildContext {
     GrabSelector<R, S> selector,
   ) {
     final element = this;
-    assert(element is GrabElement, _kErrorMessage);
+    assert(element is GrabElement, GrabMixinError.message);
 
     if (element is GrabElement) {
       return element.listen<R, S>(
@@ -119,6 +119,6 @@ extension GrabBuildContext on BuildContext {
       );
     }
 
-    throw GrabMixinError._();
+    throw GrabMixinError();
   }
 }
