@@ -9,3 +9,7 @@ typedef Grab = StatelessGrabMixin;
 ///
 /// See [StatefulGrabMixin] for details.
 typedef Grabful = StatefulGrabMixin;
+
+/// The signature of a callback that receives an object of type [R] and
+/// returns a value of type [S] chosen out of it.
+typedef GrabSelector<R, S> = S Function(R);

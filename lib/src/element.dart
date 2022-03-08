@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-typedef GrabSelector<R, S> = S Function(R);
+import 'types.dart';
 
 extension ListenableX on Listenable {
   R valueOrListenable<R>() {

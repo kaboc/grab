@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:grab/grab.dart';
-import 'package:grab/src/element.dart';
 
 class NoMixinStateful extends StatefulWidget {
   const NoMixinStateful({required this.listenable});

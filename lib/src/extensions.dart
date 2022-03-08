@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import 'element.dart';
 import 'errors.dart';
+import 'types.dart';
 
 
 /// Extensions on [BuildContext] used for Grab.
