@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import 'element.dart';
 import 'errors.dart';
+import 'mixins.dart';
 import 'types.dart';
 
 

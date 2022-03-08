@@ -29,6 +29,7 @@ class TestValueNotifier extends ValueNotifier<TestState> {
   }
 }
 
+@immutable
 class TestState {
   const TestState({this.intValue = 0, this.stringValue = ''});
 

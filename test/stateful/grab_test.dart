@@ -60,7 +60,7 @@ void main() {
 
         valueNotifier.updateIntValue(20);
         await tester.pump();
-        expect(value, equals(const TestState(intValue: 20, stringValue: '')));
+        expect(value, equals(const TestState(intValue: 20)));
       },
     );
   });

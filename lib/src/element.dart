@@ -35,10 +35,9 @@ mixin GrabElement on ComponentElement {
   }
 
   void _removeAllListeners() {
-    _listeners.forEach((listenable, listener) {
-      listenable.removeListener(listener);
-    });
-    _listeners.clear();
+    _listeners
+      ..forEach((listenable, listener) => listenable.removeListener(listener))
+      ..clear();
   }
 
   bool _compare<R, S>(
