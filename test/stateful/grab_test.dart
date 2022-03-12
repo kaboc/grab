@@ -46,21 +46,58 @@ void main() {
     );
 
     testWidgets(
-      'Rebuilds widget and returns latest value when listenable is updated',
+      'Rebuilds widget whenever non-ValueListenable notifies',
       (tester) async {
-        valueNotifier.updateIntValue(10);
+        var intValue = 0;
+        var stringValue = '';
 
-        Object? value;
         await tester.pumpWidget(
           GrabStateful(
-            listenable: valueNotifier,
-            onBuild: (Object v) => value = v,
+            listenable: changeNotifier,
+            onBuild: (_) {
+              intValue = changeNotifier.intValue;
+              stringValue = changeNotifier.stringValue;
+            },
           ),
         );
 
-        valueNotifier.updateIntValue(20);
+        changeNotifier.updateIntValue(10);
         await tester.pump();
-        expect(value, equals(const TestState(intValue: 20)));
+        expect(intValue, equals(10));
+        expect(stringValue, equals(''));
+
+        intValue = 0;
+
+        changeNotifier.updateStringValue('abc');
+        await tester.pump();
+        expect(intValue, equals(10));
+        expect(stringValue, equals('abc'));
+      },
+    );
+
+    testWidgets(
+      'Rebuilds widget when any property of ValueListenable value is updated',
+      (tester) async {
+        var state = const TestState();
+
+        await tester.pumpWidget(
+          GrabStateful(
+            listenable: valueNotifier,
+            onBuild: (Object v) => state = v as TestState,
+          ),
+        );
+
+        valueNotifier.updateIntValue(10);
+        await tester.pump();
+        expect(state.intValue, equals(10));
+        expect(state.stringValue, isEmpty);
+
+        state = const TestState();
+
+        valueNotifier.updateStringValue('abc');
+        await tester.pump();
+        expect(state.intValue, equals(10));
+        expect(state.stringValue, equals('abc'));
       },
     );
   });

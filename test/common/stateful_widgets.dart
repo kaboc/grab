@@ -143,10 +143,10 @@ class _MultiListenablesState<R1, R2, S1, S2>
   }
 }
 
-class SwitchingOrderStateful<R, S1, S2> extends StatefulWidget with Grabful {
-  const SwitchingOrderStateful({
-    required this.listenable,
+class ExtOrderSwitchStateful<R, S1, S2> extends StatefulWidget with Grabful {
+  const ExtOrderSwitchStateful({
     required this.flagNotifier,
+    required this.listenable,
     required this.selector1,
     required this.selector2,
     required this.onBuild,
@@ -159,28 +159,32 @@ class SwitchingOrderStateful<R, S1, S2> extends StatefulWidget with Grabful {
   final void Function(S1, S2, bool) onBuild;
 
   @override
-  State<SwitchingOrderStateful<R, S1, S2>> createState() =>
-      _SwitchingOrderState<R, S1, S2>();
+  State<ExtOrderSwitchStateful<R, S1, S2>> createState() =>
+      _ExtOrderSwitchState<R, S1, S2>();
 }
 
-class _SwitchingOrderState<R, S1, S2>
-    extends State<SwitchingOrderStateful<R, S1, S2>> {
+class _ExtOrderSwitchState<R, S1, S2>
+    extends State<ExtOrderSwitchStateful<R, S1, S2>> {
   @override
   Widget build(BuildContext context) {
-    final flag = context.grab<bool>(widget.flagNotifier);
-
     late final S1 value1;
     late final S2 value2;
 
-    if (flag) {
-      value1 = context.grabAt(widget.listenable, widget.selector1);
-      value2 = context.grabAt(widget.listenable, widget.selector2);
-    } else {
-      value2 = context.grabAt(widget.listenable, widget.selector2);
-      value1 = context.grabAt(widget.listenable, widget.selector1);
-    }
-    widget.onBuild.call(value1, value2, flag);
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.flagNotifier,
+      builder: (_, flag, child) {
+        if (flag) {
+          value1 = context.grabAt(widget.listenable, widget.selector1);
+          value2 = context.grabAt(widget.listenable, widget.selector2);
+        } else {
+          value2 = context.grabAt(widget.listenable, widget.selector2);
+          value1 = context.grabAt(widget.listenable, widget.selector1);
+        }
+        widget.onBuild.call(value1, value2, flag);
 
-    return const SizedBox.shrink();
+        return child!;
+      },
+      child: const SizedBox.shrink(),
+    );
   }
 }

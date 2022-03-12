@@ -18,7 +18,7 @@ void main() {
 
   group('grabAt', () {
     testWidgets(
-      'With Non ValueListenable, listenable itself is passed to selector',
+      'With non-ValueListenable, listenable itself is passed to selector',
       (tester) async {
         Object? selectorValue;
         await tester.pumpWidget(
@@ -85,7 +85,56 @@ void main() {
     );
 
     testWidgets(
-      'Rebuilds only widget that targets at updated value',
+      'Rebuilds widget only when listenable is non-ValueListenable and '
+      'property chosen by selector is updated',
+      (tester) async {
+        int? value1;
+        String? value2;
+        var buildCount1 = 0;
+        var buildCount2 = 0;
+
+        await tester.pumpWidget(
+          MultiGrabAtsStateless(
+            listenable: changeNotifier,
+            selector1: (TestChangeNotifier notifier) => notifier.intValue,
+            selector2: (TestChangeNotifier notifier) => notifier.stringValue,
+            onBuild1: (int? v) {
+              value1 = v;
+              buildCount1++;
+            },
+            onBuild2: (String? v) {
+              value2 = v;
+              buildCount2++;
+            },
+          ),
+        );
+
+        changeNotifier.updateIntValue(10);
+        await tester.pump();
+        expect(value1, equals(10));
+        expect(value2, equals(''));
+        expect(buildCount1, equals(2));
+        expect(buildCount2, equals(1));
+
+        changeNotifier.updateStringValue('abc');
+        await tester.pump();
+        expect(value1, equals(10));
+        expect(value2, equals('abc'));
+        expect(buildCount1, equals(2));
+        expect(buildCount2, equals(2));
+
+        changeNotifier.updateIntValue(20);
+        await tester.pump();
+        expect(value1, equals(20));
+        expect(value2, equals('abc'));
+        expect(buildCount1, equals(3));
+        expect(buildCount2, equals(2));
+      },
+    );
+
+    testWidgets(
+      'Rebuilds widget only when listenable is ValueListenable and '
+      'property chosen by selector is updated',
       (tester) async {
         int? value1;
         String? value2;
@@ -128,6 +177,47 @@ void main() {
         expect(value2, equals('abc'));
         expect(buildCount1, equals(3));
         expect(buildCount2, equals(2));
+      },
+    );
+
+    testWidgets(
+      'Rebuilds widget whenever listenable notifies '
+      'if listenable itself is returned from selector',
+      (tester) async {
+        int? value1;
+        String? value2;
+        var buildCount1 = 0;
+        var buildCount2 = 0;
+
+        await tester.pumpWidget(
+          MultiGrabAtsStateless(
+            listenable: changeNotifier,
+            selector1: (TestChangeNotifier notifier) => notifier,
+            selector2: (TestChangeNotifier notifier) => notifier,
+            onBuild1: (TestChangeNotifier notifier) {
+              value1 = notifier.intValue;
+              buildCount1++;
+            },
+            onBuild2: (TestChangeNotifier notifier) {
+              value2 = notifier.stringValue;
+              buildCount2++;
+            },
+          ),
+        );
+
+        changeNotifier.updateIntValue(10);
+        await tester.pump();
+        expect(value1, equals(10));
+        expect(value2, equals(''));
+        expect(buildCount1, equals(2));
+        expect(buildCount2, equals(2));
+
+        changeNotifier.updateStringValue('abc');
+        await tester.pump();
+        expect(value1, equals(10));
+        expect(value2, equals('abc'));
+        expect(buildCount1, equals(3));
+        expect(buildCount2, equals(3));
       },
     );
   });

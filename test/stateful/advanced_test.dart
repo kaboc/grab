@@ -69,9 +69,9 @@ void main() {
         bool? flag;
 
         await tester.pumpWidget(
-          SwitchingOrderStateful(
-            listenable: valueNotifier,
+          ExtOrderSwitchStateful(
             flagNotifier: flagNotifier,
+            listenable: valueNotifier,
             selector1: (TestState state) => state.intValue,
             selector2: (TestState state) => state.stringValue,
             onBuild: (int? v1, String? v2, bool f) {

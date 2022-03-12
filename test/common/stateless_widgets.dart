@@ -114,10 +114,10 @@ class MultiListenablesStateless<R1, R2, S1, S2> extends StatelessWidget
   }
 }
 
-class SwitchingOrderStateless<R, S1, S2> extends StatelessWidget with Grab {
-  const SwitchingOrderStateless({
-    required this.listenable,
+class ExtOrderSwitchStateless<R, S1, S2> extends StatelessWidget with Grab {
+  const ExtOrderSwitchStateless({
     required this.flagNotifier,
+    required this.listenable,
     required this.selector1,
     required this.selector2,
     required this.onBuild,
@@ -131,20 +131,24 @@ class SwitchingOrderStateless<R, S1, S2> extends StatelessWidget with Grab {
 
   @override
   Widget build(BuildContext context) {
-    final flag = context.grab<bool>(flagNotifier);
-
     late final S1 value1;
     late final S2 value2;
 
-    if (flag) {
-      value1 = context.grabAt(listenable, selector1);
-      value2 = context.grabAt(listenable, selector2);
-    } else {
-      value2 = context.grabAt(listenable, selector2);
-      value1 = context.grabAt(listenable, selector1);
-    }
-    onBuild.call(value1, value2, flag);
+    return ValueListenableBuilder<bool>(
+      valueListenable: flagNotifier,
+      builder: (_, flag, child) {
+        if (flag) {
+          value1 = context.grabAt(listenable, selector1);
+          value2 = context.grabAt(listenable, selector2);
+        } else {
+          value2 = context.grabAt(listenable, selector2);
+          value1 = context.grabAt(listenable, selector1);
+        }
+        onBuild.call(value1, value2, flag);
 
-    return const SizedBox.shrink();
+        return child!;
+      },
+      child: const SizedBox.shrink(),
+    );
   }
 }
