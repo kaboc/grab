@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:grab/grab.dart';
 
 final _notifier = ValueNotifier(0);
