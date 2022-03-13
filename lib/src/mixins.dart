@@ -8,7 +8,7 @@ import 'extensions.dart';
 /// A mixin used on [StatelessWidget] for making Grab available
 /// in the widget.
 ///
-/// {@template grab_mixin}
+/// {@template grab.mixin}
 /// The [GrabMixinError] is thrown if either [GrabBuildContext.grab]
 /// or [GrabBuildContext.grabAt] is used without this mixin.
 /// {@endtemplate}
@@ -25,7 +25,7 @@ class _StatelessElement extends StatelessElement with GrabElement {
 /// A mixin used on a [StatefulWidget] for making Grab available
 /// in the widget.
 ///
-/// {@macro grab_mixin}
+/// {@macro grab.mixin}
 mixin StatefulGrabMixin on StatefulWidget {
   @override
   @nonVirtual

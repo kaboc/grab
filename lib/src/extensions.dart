@@ -12,7 +12,7 @@ import 'types.dart';
 /// a [GrabElement], meaning a Grab mixin must not be missing on the
 /// widget that the BuildContext belongs to.
 ///
-/// {@template grab_example}
+/// {@template grab.extension}
 /// ```dart
 /// class Counter extends StatelessWidget with Grab {
 ///   @override
@@ -46,7 +46,7 @@ extension GrabBuildContext on BuildContext {
   /// that the [BuildContext] this method is used on belongs to,
   /// every time it is updated.
   ///
-  /// {@macro grab_example}
+  /// {@macro grab.extension}
   S grab<S>(Listenable listenable) {
     return grabAt(
       listenable,
