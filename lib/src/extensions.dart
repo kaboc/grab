@@ -6,7 +6,6 @@ import 'errors.dart';
 import 'mixins.dart';
 import 'types.dart';
 
-
 /// Extensions on [BuildContext] used for Grab.
 ///
 /// The BuildContext that the extension methods are used on has to be
@@ -49,9 +48,6 @@ extension GrabBuildContext on BuildContext {
   ///
   /// {@macro grab_example}
   S grab<S>(Listenable listenable) {
-    final element = this;
-    assert(element is GrabElement, GrabMixinError.message);
-
     return grabAt(
       listenable,
       (listenable) =>
@@ -112,13 +108,8 @@ extension GrabBuildContext on BuildContext {
     GrabSelector<R, S> selector,
   ) {
     final element = this;
-    assert(element is GrabElement, GrabMixinError.message);
-
     if (element is GrabElement) {
-      return element.listen<R, S>(
-        listenable: listenable,
-        selector: selector,
-      );
+      return element.listen<R, S>(listenable: listenable, selector: selector);
     }
 
     throw GrabMixinError();

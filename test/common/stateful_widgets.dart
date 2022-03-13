@@ -4,19 +4,36 @@ import 'package:flutter/material.dart';
 
 import 'package:grab/grab.dart';
 
-class NoMixinStateful extends StatefulWidget {
-  const NoMixinStateful({required this.listenable});
+class GrabWithoutMixinStateful extends StatefulWidget {
+  const GrabWithoutMixinStateful({required this.listenable});
 
   final Listenable listenable;
 
   @override
-  State<NoMixinStateful> createState() => _NoMixinState();
+  State<GrabWithoutMixinStateful> createState() => _GrabWithoutMixinState();
 }
 
-class _NoMixinState extends State<NoMixinStateful> {
+class _GrabWithoutMixinState extends State<GrabWithoutMixinStateful> {
   @override
   Widget build(BuildContext context) {
-    context.grab<Object>(widget.listenable);
+    context.grab<Listenable>(widget.listenable);
+    return const SizedBox.shrink();
+  }
+}
+
+class GrabAtWithoutMixinStateful extends StatefulWidget {
+  const GrabAtWithoutMixinStateful({required this.listenable});
+
+  final Listenable listenable;
+
+  @override
+  State<GrabAtWithoutMixinStateful> createState() => _GrabAtWithoutMixinState();
+}
+
+class _GrabAtWithoutMixinState extends State<GrabAtWithoutMixinStateful> {
+  @override
+  Widget build(BuildContext context) {
+    context.grabAt(widget.listenable, (_) => null);
     return const SizedBox.shrink();
   }
 }

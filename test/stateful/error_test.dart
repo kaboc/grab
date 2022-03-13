@@ -1,21 +1,35 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grab/grab.dart';
+
 import '../common/notifiers.dart';
 import '../common/stateful_widgets.dart';
 
 void main() {
-  group('AssertionError when without mixin', () {
+  group('GrabMixinError', () {
     late TestChangeNotifier notifier;
 
     setUp(() => notifier = TestChangeNotifier());
     tearDown(() => notifier.dispose());
 
-    testWidgets('StatefulWidget without mixin throws', (tester) async {
-      await tester.pumpWidget(NoMixinStateful(listenable: notifier));
-      final error = tester.takeException() as Object;
+    testWidgets(
+      'Throws if grab() is used in StatefulWidget without mixin',
+      (tester) async {
+        await tester.pumpWidget(
+          GrabWithoutMixinStateful(listenable: notifier),
+        );
+        expect(tester.takeException(), isA<GrabMixinError>());
+      },
+    );
 
-      expect(error, isAssertionError);
-      expect((error as AssertionError).message, contains('Mixin'));
-    });
+    testWidgets(
+      'Throws if grabAt() is used in StatefulWidget without mixin',
+      (tester) async {
+        await tester.pumpWidget(
+          GrabAtWithoutMixinStateful(listenable: notifier),
+        );
+        expect(tester.takeException(), isA<GrabMixinError>());
+      },
+    );
   });
 }

@@ -9,9 +9,8 @@ import 'extensions.dart';
 /// in the widget.
 ///
 /// {@template grab_mixin}
-/// If this is missing and either [GrabBuildContext.grab] or
-/// [GrabBuildContext.grabAt] is used, an [AssertionError] is thrown
-/// in debug mode, and [GrabMixinError] is thrown in release mode,
+/// The [GrabMixinError] is thrown if either [GrabBuildContext.grab]
+/// or [GrabBuildContext.grabAt] is used without this mixin.
 /// {@endtemplate}
 mixin StatelessGrabMixin on StatelessWidget {
   @override
