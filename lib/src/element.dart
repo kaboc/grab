@@ -90,4 +90,14 @@ mixin GrabElement on ComponentElement {
 
     return selected;
   }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+
+    final listeners = _listeners.keys.toList();
+    properties
+      ..add(IterableProperty<Listenable>('grabListenables', listeners))
+      ..add(IterableProperty<Object?>('grabValues', _prevValues));
+  }
 }

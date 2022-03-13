@@ -107,20 +107,20 @@ class MultiListenablesStateless<R1, R2, S1, S2> extends StatelessWidget
     required this.listenable2,
     required this.selector1,
     required this.selector2,
-    required this.onBuild,
+    this.onBuild,
   });
 
   final Listenable listenable1;
   final Listenable listenable2;
   final GrabSelector<R1, S1> selector1;
   final GrabSelector<R2, S2> selector2;
-  final void Function(S1, S2) onBuild;
+  final void Function(S1, S2)? onBuild;
 
   @override
   Widget build(BuildContext context) {
     final value1 = context.grabAt(listenable1, selector1);
     final value2 = context.grabAt(listenable2, selector2);
-    onBuild.call(value1, value2);
+    onBuild?.call(value1, value2);
 
     return const SizedBox.shrink();
   }
