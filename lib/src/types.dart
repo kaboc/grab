@@ -2,10 +2,14 @@ import 'mixins.dart';
 
 /// An alias for [StatelessGrabMixin] for those who prefer a shorter name.
 ///
+/// {@macro grab.alias.grab.example}
+///
 /// See [StatelessGrabMixin] for details.
 typedef Grab = StatelessGrabMixin;
 
 /// An alias for [StatefulGrabMixin] for those who prefer a shorter name.
+///
+/// {@macro grab.alias.grabful.example}
 ///
 /// See [StatefulGrabMixin] for details.
 typedef Grabful = StatefulGrabMixin;
