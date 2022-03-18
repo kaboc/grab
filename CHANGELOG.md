@@ -1,3 +1,8 @@
+## 0.2.1
+
+- Improve document of mixins.
+- Add sample app link to README.
+
 ## 0.2.0
 
 - Implement `debugFillProperties()`.
