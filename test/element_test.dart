@@ -28,26 +28,16 @@ void main() {
         ),
       );
 
-      final finder = find.bySubtype<MultiListenablesStateless>();
-      var props = finder.debugProps;
+      final props = find.bySubtype<MultiListenablesStateless>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
-      expect(props.grabValues, equals([0, 0]));
-
-      valueNotifier1.updateIntValue(10);
-      valueNotifier2.updateIntValue(20);
-      await tester.pump();
-
-      props = finder.debugProps;
-      expect(props.grabValues, equals([10, 20]));
     });
   });
 }
 
 class _Properties {
-  const _Properties(this.grabListenables, this.grabValues);
+  const _Properties(this.grabListenables);
 
   final List<Listenable> grabListenables;
-  final List<Object> grabValues;
 }
 
 extension on Finder {
@@ -62,20 +52,15 @@ extension on Finder {
 extension on List<DiagnosticsNode> {
   _Properties get get {
     var grabListenables = <Listenable>[];
-    var grabValues = <Object>[];
 
     for (final prop in this) {
       if (prop.name == 'grabListenables') {
         grabListenables = [
           for (final v in prop.value! as List<Object?>) v! as Listenable,
         ];
-      } else if (prop.name == 'grabValues') {
-        grabValues = [
-          for (final v in prop.value! as List<Object?>) v!,
-        ];
       }
     }
 
-    return _Properties(grabListenables, grabValues);
+    return _Properties(grabListenables);
   }
 }

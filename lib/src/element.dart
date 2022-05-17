@@ -12,8 +12,7 @@ extension ListenableX on Listenable {
 
 mixin GrabElement on ComponentElement {
   final Map<Listenable, VoidCallback> _listeners = {};
-  final Map<Listenable, List<bool Function(int)>> _comparators = {};
-  final List<Object?> _prevValues = [];
+  final Map<Listenable, List<bool Function()>> _comparators = {};
 
   @override
   void unmount() {
@@ -31,7 +30,6 @@ mixin GrabElement on ComponentElement {
   void _reset() {
     _removeAllListeners();
     _comparators.clear();
-    _prevValues.clear();
   }
 
   void _removeAllListeners() {
@@ -41,14 +39,11 @@ mixin GrabElement on ComponentElement {
   }
 
   bool _compare<R, S>(
-    int index,
     Listenable listenable,
     GrabSelector<R, S> selector,
+    Object? prev,
   ) {
-    final prev = _prevValues[index];
     final curr = selector(listenable.valueOrListenable());
-
-    _prevValues[index] = curr;
 
     // If the selected value is the Listenable itself, it means
     // the user has chosen to make the widget get rebuilt whenever
@@ -57,19 +52,15 @@ mixin GrabElement on ComponentElement {
   }
 
   void _listener(Listenable listenable) {
-    var shouldRebuild = false;
-
     final comparators = _comparators[listenable]!;
 
     for (var i = 0; i < comparators.length; i++) {
-      // The loop has to be continued even after shouldRebuild turns
-      // true to update all previous values by iterating until the end.
-      shouldRebuild |= comparators[i](i);
-    }
-
-    if (shouldRebuild) {
-      _reset();
-      markNeedsBuild();
+      final shouldRebuild = comparators[i]();
+      if (shouldRebuild) {
+        _reset();
+        markNeedsBuild();
+        break;
+      }
     }
   }
 
@@ -83,10 +74,9 @@ mixin GrabElement on ComponentElement {
     }
 
     final selected = selector(listenable.valueOrListenable());
-    _prevValues.add(selected);
-
     _comparators[listenable] ??= [];
-    _comparators[listenable]!.add((i) => _compare(i, listenable, selector));
+    _comparators[listenable]!
+        .add(() => _compare(listenable, selector, selected));
 
     return selected;
   }
@@ -96,8 +86,6 @@ mixin GrabElement on ComponentElement {
     super.debugFillProperties(properties);
 
     final listeners = _listeners.keys.toList();
-    properties
-      ..add(IterableProperty<Listenable>('grabListenables', listeners))
-      ..add(IterableProperty<Object?>('grabValues', _prevValues));
+    properties.add(IterableProperty<Listenable>('grabListenables', listeners));
   }
 }
