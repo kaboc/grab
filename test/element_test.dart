@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'common/notifiers.dart';
@@ -20,17 +19,17 @@ void main() {
 
   group('element', () {
     testWidgets('debugFillProperties()', (tester) async {
-      final widget = MultiListenablesStateless(
-        listenable1: valueNotifier1,
-        listenable2: valueNotifier2,
-        selector1: (TestState state) => state.intValue,
-        selector2: (TestState state) => state.intValue,
+      await tester.pumpWidget(
+        MultiListenablesStateless(
+          listenable1: valueNotifier1,
+          listenable2: valueNotifier2,
+          selector1: (TestState state) => state.intValue,
+          selector2: (TestState state) => state.intValue,
+        ),
       );
-      await tester.pumpWidget(widget);
 
-      final builder = _propertiesBuilder(widget);
-
-      var props = builder.properties.get;
+      final finder = find.bySubtype<MultiListenablesStateless>();
+      var props = finder.debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
       expect(props.grabValues, equals([0, 0]));
 
@@ -38,8 +37,7 @@ void main() {
       valueNotifier2.updateIntValue(20);
       await tester.pump();
 
-      props = builder.properties.get;
-      expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
+      props = finder.debugProps;
       expect(props.grabValues, equals([10, 20]));
     });
   });
@@ -52,11 +50,13 @@ class _Properties {
   final List<Object> grabValues;
 }
 
-DiagnosticPropertiesBuilder _propertiesBuilder(Widget widget) {
-  final builder = DiagnosticPropertiesBuilder();
-  find.byWidget(widget).evaluate().single.debugFillProperties(builder);
+extension on Finder {
+  _Properties get debugProps {
+    final builder = DiagnosticPropertiesBuilder();
+    evaluate().single.debugFillProperties(builder);
 
-  return builder;
+    return builder.properties.get;
+  }
 }
 
 extension on List<DiagnosticsNode> {
