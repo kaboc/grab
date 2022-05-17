@@ -1,3 +1,10 @@
+## 0.2.2
+
+- Remove unnecessary list of previous values from element.
+    - `grabValues` was accordingly removed from the debug properties.
+- Remove duplicate `_reset()` call.
+- Additional minor refactoring.
+
 ## 0.2.1
 
 - Improve document of mixins.

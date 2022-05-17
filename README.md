@@ -22,7 +22,7 @@ some DI package such as [get_it][get_it] and [pot][pot].
 
 The Listenable does not have to be passed down the widget tree. Because Grab works as
 long as a Listenable is available in any way when [grab()][grab] or [grabAt()][grabAt] is
-used, so you can use your favourite DI solution to pass Listenables around.
+used, you can use your favourite DI solution to pass Listenables around.
 
 ### Motivation
 

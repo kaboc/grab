@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'types.dart';
 
 extension ListenableX on Listenable {
-  R valueOrListenable<R>() {
+  R listenableOrValue<R>() {
     final listenable = this;
     return (listenable is ValueListenable ? listenable.value : listenable) as R;
   }
@@ -50,14 +50,14 @@ mixin GrabElement on ComponentElement {
   bool _compare<R, S>(
     Listenable listenable,
     GrabSelector<R, S> selector,
-    Object? prev,
+    Object? value,
   ) {
-    final curr = selector(listenable.valueOrListenable());
+    final newValue = selector(listenable.listenableOrValue());
 
     // If the selected value is the Listenable itself, it means
     // the user has chosen to make the widget get rebuilt whenever
     // the listenable notifies, so true is returned in that case.
-    return curr == listenable || curr != prev;
+    return newValue == listenable || newValue != value;
   }
 
   void _listener(Listenable listenable) {
@@ -91,14 +91,13 @@ mixin GrabElement on ComponentElement {
       listenable.addListener(_listeners[listenable]!);
     }
 
-    final selected = selector(listenable.valueOrListenable());
+    final value = selector(listenable.listenableOrValue());
     _comparators[listenable] ??= [];
-    _comparators[listenable]!
-        .add(() => _compare(listenable, selector, selected));
+    _comparators[listenable]!.add(() => _compare(listenable, selector, value));
 
     _countForDebug();
 
-    return selected;
+    return value;
   }
 
   @override
@@ -108,6 +107,6 @@ mixin GrabElement on ComponentElement {
     final listeners = _listeners.keys.toList();
     properties
       ..add(IterableProperty<Listenable>('grabListenables', listeners))
-      ..add(IntProperty('grabCount', _debugCounter));
+      ..add(IntProperty('grabCounter', _debugCounter));
   }
 }

@@ -31,7 +31,7 @@ void main() {
 
       final props = find.bySubtype<MultiListenablesStateless>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
-      expect(props.grabCount, equals(2));
+      expect(props.grabCounter, equals(2));
     });
 
     testWidgets(
@@ -63,17 +63,17 @@ void main() {
           ),
         );
         final props = find.bySubtype<MultiListenablesStateless>().debugProps;
-        expect(props.grabCount, equals(2));
+        expect(props.grabCounter, equals(2));
 
         final buttonFinder = find.byType(ElevatedButton).first;
-        for (var i = 0; i < 3; i++) {
+        for (var i = 1; i <= 3; i++) {
           await tester.tap(buttonFinder);
           await tester.pump();
 
           final newProps =
               find.bySubtype<MultiListenablesStateless>().debugProps;
-          expect(rebuildCount, equals(i + 1));
-          expect(newProps.grabCount, equals(2));
+          expect(rebuildCount, equals(i));
+          expect(newProps.grabCounter, equals(2));
         }
       },
     );
@@ -81,10 +81,10 @@ void main() {
 }
 
 class _Properties {
-  const _Properties(this.grabListenables, this.grabCount);
+  const _Properties(this.grabListenables, this.grabCounter);
 
   final List<Listenable> grabListenables;
-  final int grabCount;
+  final int grabCounter;
 }
 
 extension on Finder {
@@ -98,19 +98,19 @@ extension on Finder {
 
 extension on List<DiagnosticsNode> {
   _Properties get get {
-    var grabListenables = <Listenable>[];
-    var grabCount = 0;
+    var listenables = <Listenable>[];
+    var counter = 0;
 
     for (final prop in this) {
       if (prop.name == 'grabListenables') {
-        grabListenables = [
+        listenables = [
           for (final v in prop.value! as List<Object?>) v! as Listenable,
         ];
-      } else if (prop.name == 'grabCount') {
-        grabCount = (prop.value ?? 0) as int;
+      } else if (prop.name == 'grabCounter') {
+        counter = (prop.value ?? 0) as int;
       }
     }
 
-    return _Properties(grabListenables, grabCount);
+    return _Properties(listenables, counter);
   }
 }

@@ -11,6 +11,12 @@ analyzer:
 
 linter:
   rules:
+    # For Flutter
+    use_build_context_synchronously: true
+    sized_box_shrink_expand: true
+    use_colored_box: true
+    use_decorated_box: true
+
     # For Dart
     always_declare_return_types: true
     always_put_control_body_on_new_line: true
@@ -105,8 +111,3 @@ linter:
     use_string_buffers: true
     use_test_throws_matchers: true
 #    use_to_and_as_if_applicable: true
-
-    # For Flutter
-    use_build_context_synchronously: true
-    sized_box_shrink_expand: true
-    use_decorated_box: true

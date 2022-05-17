@@ -30,7 +30,7 @@ import 'types.dart';
 /// ```dart
 /// class Counter extends StatefulWidget with Grabful {
 ///   @override
-///   _CounterState createState() => _CounterState();
+///   State<Counter> createState() => _CounterState();
 /// }
 ///
 /// class _CounterState extends State<Counter> {
