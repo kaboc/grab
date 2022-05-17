@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../common/notifiers.dart';
@@ -218,6 +219,42 @@ void main() {
         expect(value2, equals('abc'));
         expect(buildCount1, equals(3));
         expect(buildCount2, equals(3));
+      },
+    );
+
+    testWidgets(
+      'Returns new value on rebuilt by other causes than listenable update too',
+      (tester) async {
+        valueNotifier.updateIntValue(10);
+        var multiplier = 2;
+
+        int? value;
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: StatefulBuilder(
+              builder: (_, setState) => Column(
+                children: [
+                  GrabAtStateless(
+                    listenable: valueNotifier,
+                    selector: (TestState state) => state.intValue * multiplier,
+                    onBuild: (int? v) => value = v,
+                  ),
+                  ElevatedButton(
+                    child: const Text('test'),
+                    onPressed: () => setState(() => multiplier = 3),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        expect(value, equals(20));
+
+        final buttonFinder = find.byType(ElevatedButton).first;
+        await tester.tap(buttonFinder);
+        await tester.pump();
+        expect(value, equals(30));
       },
     );
   });

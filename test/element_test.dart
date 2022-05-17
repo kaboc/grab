@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'common/notifiers.dart';
@@ -30,14 +31,60 @@ void main() {
 
       final props = find.bySubtype<MultiListenablesStateless>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
+      expect(props.grabCount, equals(2));
     });
+
+    testWidgets(
+      'Props are reset on rebuilt by other causes than listenable update too',
+      (tester) async {
+        var rebuildCount = 0;
+
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: StatefulBuilder(
+              builder: (_, setState) {
+                return Column(
+                  children: [
+                    MultiListenablesStateless(
+                      listenable1: valueNotifier1,
+                      listenable2: valueNotifier2,
+                      selector1: (TestState state) => state.intValue,
+                      selector2: (TestState state) => state.intValue,
+                    ),
+                    ElevatedButton(
+                      child: const Text('test'),
+                      onPressed: () => setState(() => rebuildCount++),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+        final props = find.bySubtype<MultiListenablesStateless>().debugProps;
+        expect(props.grabCount, equals(2));
+
+        final buttonFinder = find.byType(ElevatedButton).first;
+        for (var i = 0; i < 3; i++) {
+          await tester.tap(buttonFinder);
+          await tester.pump();
+
+          final newProps =
+              find.bySubtype<MultiListenablesStateless>().debugProps;
+          expect(rebuildCount, equals(i + 1));
+          expect(newProps.grabCount, equals(2));
+        }
+      },
+    );
   });
 }
 
 class _Properties {
-  const _Properties(this.grabListenables);
+  const _Properties(this.grabListenables, this.grabCount);
 
   final List<Listenable> grabListenables;
+  final int grabCount;
 }
 
 extension on Finder {
@@ -52,15 +99,18 @@ extension on Finder {
 extension on List<DiagnosticsNode> {
   _Properties get get {
     var grabListenables = <Listenable>[];
+    var grabCount = 0;
 
     for (final prop in this) {
       if (prop.name == 'grabListenables') {
         grabListenables = [
           for (final v in prop.value! as List<Object?>) v! as Listenable,
         ];
+      } else if (prop.name == 'grabCount') {
+        grabCount = (prop.value ?? 0) as int;
       }
     }
 
-    return _Properties(grabListenables);
+    return _Properties(grabListenables, grabCount);
   }
 }

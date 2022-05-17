@@ -14,6 +14,9 @@ mixin GrabElement on ComponentElement {
   final Map<Listenable, VoidCallback> _listeners = {};
   final Map<Listenable, List<bool Function()>> _comparators = {};
 
+  // Only for debugging
+  var _debugCounter = 0;
+
   @override
   void unmount() {
     _reset();
@@ -22,14 +25,20 @@ mixin GrabElement on ComponentElement {
 
   @override
   void performRebuild() {
-    // Resetting must be ahead of a rebuild.
+    // Properties need to be cleared before every rebuild.
+    // Note that resetting at the timing of markNeedsBuild() in
+    // _listener() instead of here is not enough because _listener()
+    // is not triggered by causes other than update of listenable value.
     _reset();
+
+    // _reset() must precede a rebuild. Don't change the order.
     super.performRebuild();
   }
 
   void _reset() {
     _removeAllListeners();
     _comparators.clear();
+    _debugCounter = 0;
   }
 
   void _removeAllListeners() {
@@ -57,11 +66,20 @@ mixin GrabElement on ComponentElement {
     for (var i = 0; i < comparators.length; i++) {
       final shouldRebuild = comparators[i]();
       if (shouldRebuild) {
-        _reset();
         markNeedsBuild();
         break;
       }
     }
+  }
+
+  void _countForDebug() {
+    // ignore: prefer_asserts_with_message
+    assert(
+      () {
+        _debugCounter++;
+        return true;
+      }(),
+    );
   }
 
   S listen<R, S>({
@@ -78,6 +96,8 @@ mixin GrabElement on ComponentElement {
     _comparators[listenable]!
         .add(() => _compare(listenable, selector, selected));
 
+    _countForDebug();
+
     return selected;
   }
 
@@ -86,6 +106,8 @@ mixin GrabElement on ComponentElement {
     super.debugFillProperties(properties);
 
     final listeners = _listeners.keys.toList();
-    properties.add(IterableProperty<Listenable>('grabListenables', listeners));
+    properties
+      ..add(IterableProperty<Listenable>('grabListenables', listeners))
+      ..add(IntProperty('grabCount', _debugCounter));
   }
 }
