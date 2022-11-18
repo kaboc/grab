@@ -29,6 +29,7 @@ void main() {
         ),
       );
 
+      // ignore: strict_raw_type
       final props = find.bySubtype<MultiListenablesStateless>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
       expect(props.grabCounter, equals(2));
@@ -62,6 +63,8 @@ void main() {
             ),
           ),
         );
+
+        // ignore: strict_raw_type
         final props = find.bySubtype<MultiListenablesStateless>().debugProps;
         expect(props.grabCounter, equals(2));
 
@@ -71,6 +74,7 @@ void main() {
           await tester.pump();
 
           final newProps =
+              // ignore: strict_raw_type
               find.bySubtype<MultiListenablesStateless>().debugProps;
           expect(rebuildCount, equals(i));
           expect(newProps.grabCounter, equals(2));

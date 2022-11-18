@@ -37,7 +37,7 @@ mixin StatelessGrabMixin on StatelessWidget {
 }
 
 class _StatelessElement extends StatelessElement with GrabElement {
-  _StatelessElement(StatelessWidget widget) : super(widget);
+  _StatelessElement(super.widget);
 }
 
 /// A mixin used on a [StatefulWidget] for making Grab available
@@ -68,5 +68,5 @@ mixin StatefulGrabMixin on StatefulWidget {
 }
 
 class _StatefulElement extends StatefulElement with GrabElement {
-  _StatefulElement(StatefulWidget widget) : super(widget);
+  _StatefulElement(super.widget);
 }
