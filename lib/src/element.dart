@@ -12,7 +12,7 @@ extension ListenableX on Listenable {
 
 mixin GrabElement on ComponentElement {
   final Map<Listenable, VoidCallback> _listeners = {};
-  final Map<Listenable, List<bool Function()>> _comparators = {};
+  final Map<Listenable, List<ValueGetter<bool>>> _comparators = {};
 
   // Only for debugging
   var _debugCounter = 0;

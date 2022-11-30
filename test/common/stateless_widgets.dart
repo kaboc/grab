@@ -143,12 +143,12 @@ class ExtOrderSwitchStateless<R, S1, S2> extends StatelessWidget with Grab {
 
   @override
   Widget build(BuildContext context) {
-    late final S1 value1;
-    late final S2 value2;
-
     return ValueListenableBuilder<bool>(
       valueListenable: flagNotifier,
       builder: (_, flag, child) {
+        final S1 value1;
+        final S2 value2;
+
         if (flag) {
           value1 = context.grabAt(listenable, selector1);
           value2 = context.grabAt(listenable, selector2);

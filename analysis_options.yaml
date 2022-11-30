@@ -48,7 +48,6 @@ linter:
     cast_nullable_to_non_nullable: true
     close_sinks: true
     comment_references: true
-    combinators_ordering: true
     conditional_uri_does_not_exist: true
     deprecated_consistency: true
     directives_ordering: true

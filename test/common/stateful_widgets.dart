@@ -184,12 +184,12 @@ class _ExtOrderSwitchState<R, S1, S2>
     extends State<ExtOrderSwitchStateful<R, S1, S2>> {
   @override
   Widget build(BuildContext context) {
-    late final S1 value1;
-    late final S2 value2;
-
     return ValueListenableBuilder<bool>(
       valueListenable: widget.flagNotifier,
       builder: (_, flag, child) {
+        final S1 value1;
+        final S2 value2;
+
         if (flag) {
           value1 = context.grabAt(widget.listenable, widget.selector1);
           value2 = context.grabAt(widget.listenable, widget.selector2);
