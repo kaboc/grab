@@ -1,3 +1,8 @@
+## 0.3.0
+
+- Bump minimum Flutter version to 0.3.0.
+- Minor changes.
+
 ## 0.2.2
 
 - Remove unnecessary list of previous values from element.
