@@ -1,6 +1,6 @@
 name: grab
 description: A flutter package providing BuildContext extension methods to trigger a rebuild on change in Listenable (ChangeNotifier, ValueNotifier, etc).
-version: 0.3.0
+version: 0.3.0+1
 repository: https://github.com/kaboc/grab
 
 environment:

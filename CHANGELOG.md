@@ -1,6 +1,10 @@
+## 0.3.0+1
+
+- Fix changelog.
+
 ## 0.3.0
 
-- Bump minimum Flutter version to 0.3.0.
+- Bump minimum Flutter version to 3.0.0.
 - Minor changes.
 
 ## 0.2.2
