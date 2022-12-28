@@ -121,7 +121,7 @@ final notifier = ValueNotifier(0);
 ```dart
 @override
 Widget build(BuildContext context) {
-  final count = context.grab<int>(counterNotifier);
+  final count = context.grab<int>(notifier);
   return Text('$count');
 }
 ```
