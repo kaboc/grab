@@ -71,6 +71,12 @@ Anything that inherits the [Listenable][Listenable] class:
 - [Todo app](https://github.com/kaboc/todo-with-grab) - basic
 - [pub.dev explorer](https://github.com/kaboc/pubdev-explorer) - advanced
 
+## Companion package (optional)
+
+- [grab_lints](https://github.com/kaboc/grab-lints)
+    - A Dart analyzer plugin to add lint rules for Grab.
+    - Warns you about misuse of Grab and helps you fix it quickly.
+
 ## Usage
 
 ### Mixins
