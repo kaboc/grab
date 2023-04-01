@@ -1,20 +1,21 @@
 name: Flutter CI
 
 on:
-  push:
-    branches: [main]
+#  push:
+#    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
 
 jobs:
-  flutter-tests:
+  flutter-ci:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.0.0'
           channel: stable
       - name: Install dependencies
         run: flutter pub get
@@ -25,6 +26,4 @@ jobs:
       - name: Run tests
         run: flutter test --coverage
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          file: coverage/lcov.info
+        uses: codecov/codecov-action@v3
