@@ -48,10 +48,10 @@ extension GrabBuildContext on BuildContext {
   ///
   /// {@macro grab.extension}
   S grab<S>(Listenable listenable) {
-    return grabAt(
+    return grabAt<S, S>(
       listenable,
       (listenable) =>
-          (listenable is ValueListenable ? listenable.value : listenable) as S,
+          listenable is ValueListenable ? listenable.value as S : listenable,
     );
   }
 
@@ -109,7 +109,7 @@ extension GrabBuildContext on BuildContext {
   ) {
     final element = this;
     if (element is GrabElement) {
-      return element.listen<R, S>(listenable: listenable, selector: selector);
+      return element.listen(listenable: listenable, selector: selector);
     }
 
     throw GrabMixinError();
