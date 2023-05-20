@@ -32,7 +32,7 @@ void main() {
       // ignore: strict_raw_type
       final props = find.bySubtype<MultiListenablesStateless>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
-      expect(props.grabCounter, equals(2));
+      expect(props.grabCallCounter, equals(2));
     });
 
     testWidgets(
@@ -66,7 +66,7 @@ void main() {
 
         // ignore: strict_raw_type
         final props = find.bySubtype<MultiListenablesStateless>().debugProps;
-        expect(props.grabCounter, equals(2));
+        expect(props.grabCallCounter, equals(2));
 
         final buttonFinder = find.byType(ElevatedButton).first;
         for (var i = 1; i <= 3; i++) {
@@ -77,7 +77,7 @@ void main() {
               // ignore: strict_raw_type
               find.bySubtype<MultiListenablesStateless>().debugProps;
           expect(rebuildCount, equals(i));
-          expect(newProps.grabCounter, equals(2));
+          expect(newProps.grabCallCounter, equals(2));
         }
       },
     );
@@ -85,10 +85,10 @@ void main() {
 }
 
 class _Properties {
-  const _Properties(this.grabListenables, this.grabCounter);
+  const _Properties(this.grabListenables, this.grabCallCounter);
 
   final List<Listenable> grabListenables;
-  final int grabCounter;
+  final int grabCallCounter;
 }
 
 extension on Finder {
@@ -110,7 +110,7 @@ extension on List<DiagnosticsNode> {
         listenables = [
           for (final v in prop.value! as List<Object?>) v! as Listenable,
         ];
-      } else if (prop.name == 'grabCounter') {
+      } else if (prop.name == 'grabCallCounter') {
         counter = (prop.value ?? 0) as int;
       }
     }

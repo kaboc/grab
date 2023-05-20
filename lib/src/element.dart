@@ -15,7 +15,7 @@ mixin GrabElement on ComponentElement {
   final Map<Listenable, List<ValueGetter<bool>>> _comparators = {};
 
   // Only for debugging
-  var _debugCounter = 0;
+  var _grabCallCounter = 0;
 
   @override
   void unmount() {
@@ -38,7 +38,7 @@ mixin GrabElement on ComponentElement {
   void _reset() {
     _removeAllListeners();
     _comparators.clear();
-    _debugCounter = 0;
+    _grabCallCounter = 0;
   }
 
   void _removeAllListeners() {
@@ -72,11 +72,12 @@ mixin GrabElement on ComponentElement {
     }
   }
 
-  void _countForDebug() {
+  // Only for debugging
+  void _incrementCallCounter() {
     // ignore: prefer_asserts_with_message
     assert(
       () {
-        _debugCounter++;
+        _grabCallCounter++;
         return true;
       }(),
     );
@@ -95,7 +96,7 @@ mixin GrabElement on ComponentElement {
     _comparators[listenable] ??= [];
     _comparators[listenable]!.add(() => _compare(listenable, selector, value));
 
-    _countForDebug();
+    _incrementCallCounter();
 
     return value;
   }
@@ -107,6 +108,6 @@ mixin GrabElement on ComponentElement {
     final listeners = _listeners.keys.toList();
     properties
       ..add(IterableProperty<Listenable>('grabListenables', listeners))
-      ..add(IntProperty('grabCounter', _debugCounter));
+      ..add(IntProperty('grabCallCounter', _grabCallCounter));
   }
 }
