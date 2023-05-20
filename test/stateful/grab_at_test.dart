@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grab/grab.dart';
+
 import '../common/notifiers.dart';
-import '../common/stateful_widgets.dart';
+import '../common/widgets.dart';
 
 void main() {
   late TestChangeNotifier changeNotifier;
@@ -23,9 +25,13 @@ void main() {
       (tester) async {
         Object? selectorValue;
         await tester.pumpWidget(
-          GrabAtStateful(
-            listenable: changeNotifier,
-            selector: (value) => selectorValue = value,
+          StatefulWithMixin(
+            funcCalledInBuild: (context) {
+              context.grabAt(
+                changeNotifier,
+                (TestChangeNotifier n) => selectorValue = n,
+              );
+            },
           ),
         );
         expect(selectorValue, equals(changeNotifier));
@@ -39,9 +45,13 @@ void main() {
 
         Object? selectorValue;
         await tester.pumpWidget(
-          GrabAtStateful(
-            listenable: valueNotifier,
-            selector: (value) => selectorValue = value,
+          StatefulWithMixin(
+            funcCalledInBuild: (context) {
+              context.grabAt(
+                valueNotifier,
+                (TestState s) => selectorValue = s,
+              );
+            },
           ),
         );
         expect(selectorValue, equals(valueNotifier.value));
@@ -55,10 +65,13 @@ void main() {
 
         int? value;
         await tester.pumpWidget(
-          GrabAtStateful(
-            listenable: valueNotifier,
-            selector: (TestState state) => state.intValue,
-            onBuild: (int? v) => value = v,
+          StatefulWithMixin(
+            funcCalledInBuild: (context) {
+              value = context.grabAt(
+                valueNotifier,
+                (TestState s) => s.intValue,
+              );
+            },
           ),
         );
         expect(value, equals(10));
@@ -72,10 +85,13 @@ void main() {
 
         int? value;
         await tester.pumpWidget(
-          GrabAtStateful(
-            listenable: valueNotifier,
-            selector: (TestState state) => state.intValue,
-            onBuild: (int? v) => value = v,
+          StatefulWithMixin(
+            funcCalledInBuild: (context) {
+              value = context.grabAt(
+                valueNotifier,
+                (TestState s) => s.intValue,
+              );
+            },
           ),
         );
 
@@ -95,18 +111,27 @@ void main() {
         var buildCount2 = 0;
 
         await tester.pumpWidget(
-          MultiGrabAtsStateful(
-            listenable: changeNotifier,
-            selector1: (TestChangeNotifier notifier) => notifier.intValue,
-            selector2: (TestChangeNotifier notifier) => notifier.stringValue,
-            onBuild1: (int? v) {
-              value1 = v;
-              buildCount1++;
-            },
-            onBuild2: (String? v) {
-              value2 = v;
-              buildCount2++;
-            },
+          Column(
+            children: [
+              StatefulWithMixin(
+                funcCalledInBuild: (context) {
+                  value1 = context.grabAt(
+                    changeNotifier,
+                    (TestChangeNotifier n) => n.intValue,
+                  );
+                  buildCount1++;
+                },
+              ),
+              StatefulWithMixin(
+                funcCalledInBuild: (context) {
+                  value2 = context.grabAt(
+                    changeNotifier,
+                    (TestChangeNotifier n) => n.stringValue,
+                  );
+                  buildCount2++;
+                },
+              ),
+            ],
           ),
         );
 
@@ -143,18 +168,27 @@ void main() {
         var buildCount2 = 0;
 
         await tester.pumpWidget(
-          MultiGrabAtsStateful(
-            listenable: valueNotifier,
-            selector1: (TestState state) => state.intValue,
-            selector2: (TestState state) => state.stringValue,
-            onBuild1: (int? v) {
-              value1 = v;
-              buildCount1++;
-            },
-            onBuild2: (String? v) {
-              value2 = v;
-              buildCount2++;
-            },
+          Column(
+            children: [
+              StatefulWithMixin(
+                funcCalledInBuild: (context) {
+                  value1 = context.grabAt(
+                    valueNotifier,
+                    (TestState s) => s.intValue,
+                  );
+                  buildCount1++;
+                },
+              ),
+              StatefulWithMixin(
+                funcCalledInBuild: (context) {
+                  value2 = context.grabAt(
+                    valueNotifier,
+                    (TestState s) => s.stringValue,
+                  );
+                  buildCount2++;
+                },
+              ),
+            ],
           ),
         );
 
@@ -191,18 +225,29 @@ void main() {
         var buildCount2 = 0;
 
         await tester.pumpWidget(
-          MultiGrabAtsStateful(
-            listenable: changeNotifier,
-            selector1: (TestChangeNotifier notifier) => notifier,
-            selector2: (TestChangeNotifier notifier) => notifier,
-            onBuild1: (TestChangeNotifier notifier) {
-              value1 = notifier.intValue;
-              buildCount1++;
-            },
-            onBuild2: (TestChangeNotifier notifier) {
-              value2 = notifier.stringValue;
-              buildCount2++;
-            },
+          Column(
+            children: [
+              StatefulWithMixin(
+                funcCalledInBuild: (context) {
+                  final notifier = context.grabAt(
+                    changeNotifier,
+                    (TestChangeNotifier n) => n,
+                  );
+                  value1 = notifier.intValue;
+                  buildCount1++;
+                },
+              ),
+              StatefulWithMixin(
+                funcCalledInBuild: (context) {
+                  final notifier = context.grabAt(
+                    changeNotifier,
+                    (TestChangeNotifier n) => n,
+                  );
+                  value2 = notifier.stringValue;
+                  buildCount2++;
+                },
+              ),
+            ],
           ),
         );
 
@@ -223,7 +268,7 @@ void main() {
     );
 
     testWidgets(
-      'Returns new value on rebuilt by other causes than listenable update too',
+      'Returns new value on rebuild by other causes than listenable update too',
       (tester) async {
         valueNotifier.updateIntValue(10);
         var multiplier = 2;
@@ -235,14 +280,17 @@ void main() {
             child: StatefulBuilder(
               builder: (_, setState) => Column(
                 children: [
-                  GrabAtStateful(
-                    listenable: valueNotifier,
-                    selector: (TestState state) => state.intValue * multiplier,
-                    onBuild: (int? v) => value = v,
+                  StatefulWithMixin(
+                    funcCalledInBuild: (context) {
+                      value = context.grabAt(
+                        valueNotifier,
+                        (TestState s) => s.intValue * multiplier,
+                      );
+                    },
                   ),
                   ElevatedButton(
-                    child: const Text('test'),
                     onPressed: () => setState(() => multiplier = 3),
+                    child: const Text('test'),
                   ),
                 ],
               ),

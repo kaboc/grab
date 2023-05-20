@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grab/grab.dart';
+
 import 'common/notifiers.dart';
-import 'common/stateless_widgets.dart';
+import 'common/widgets.dart';
 
 void main() {
   late TestValueNotifier valueNotifier1;
@@ -21,16 +23,17 @@ void main() {
   group('element', () {
     testWidgets('debugFillProperties()', (tester) async {
       await tester.pumpWidget(
-        MultiListenablesStateless(
-          listenable1: valueNotifier1,
-          listenable2: valueNotifier2,
-          selector1: (TestState state) => state.intValue,
-          selector2: (TestState state) => state.intValue,
+        StatelessWithMixin(
+          funcCalledInBuild: (context) {
+            context
+              ..grabAt(valueNotifier1, (TestState s) => s.intValue)
+              ..grabAt(valueNotifier2, (TestState s) => s.intValue);
+          },
         ),
       );
 
       // ignore: strict_raw_type
-      final props = find.bySubtype<MultiListenablesStateless>().debugProps;
+      final props = find.bySubtype<StatelessWithMixin>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
       expect(props.grabCallCounter, equals(2));
     });
@@ -47,11 +50,12 @@ void main() {
               builder: (_, setState) {
                 return Column(
                   children: [
-                    MultiListenablesStateless(
-                      listenable1: valueNotifier1,
-                      listenable2: valueNotifier2,
-                      selector1: (TestState state) => state.intValue,
-                      selector2: (TestState state) => state.intValue,
+                    StatelessWithMixin(
+                      funcCalledInBuild: (context) {
+                        context
+                          ..grabAt(valueNotifier1, (TestState s) => s.intValue)
+                          ..grabAt(valueNotifier2, (TestState s) => s.intValue);
+                      },
                     ),
                     ElevatedButton(
                       child: const Text('test'),
@@ -65,7 +69,7 @@ void main() {
         );
 
         // ignore: strict_raw_type
-        final props = find.bySubtype<MultiListenablesStateless>().debugProps;
+        final props = find.bySubtype<StatelessWithMixin>().debugProps;
         expect(props.grabCallCounter, equals(2));
 
         final buttonFinder = find.byType(ElevatedButton).first;
@@ -73,9 +77,7 @@ void main() {
           await tester.tap(buttonFinder);
           await tester.pump();
 
-          final newProps =
-              // ignore: strict_raw_type
-              find.bySubtype<MultiListenablesStateless>().debugProps;
+          final newProps = find.bySubtype<StatelessWithMixin>().debugProps;
           expect(rebuildCount, equals(i));
           expect(newProps.grabCallCounter, equals(2));
         }

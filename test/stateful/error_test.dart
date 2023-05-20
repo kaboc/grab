@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:grab/grab.dart';
 
 import '../common/notifiers.dart';
-import '../common/stateful_widgets.dart';
+import '../common/widgets.dart';
 
 void main() {
   group('GrabMixinError', () {
@@ -16,7 +16,11 @@ void main() {
       'Throws if grab() is used in StatefulWidget without mixin',
       (tester) async {
         await tester.pumpWidget(
-          GrabWithoutMixinStateful(listenable: notifier),
+          StatefulWithoutMixin(
+            funcCalledInBuild: (context) {
+              context.grab<TestChangeNotifier>(notifier);
+            },
+          ),
         );
         expect(tester.takeException(), isA<GrabMixinError>());
       },
@@ -26,7 +30,11 @@ void main() {
       'Throws if grabAt() is used in StatefulWidget without mixin',
       (tester) async {
         await tester.pumpWidget(
-          GrabAtWithoutMixinStateful(listenable: notifier),
+          StatefulWithoutMixin(
+            funcCalledInBuild: (context) {
+              context.grabAt(notifier, (_) => null);
+            },
+          ),
         );
         expect(tester.takeException(), isA<GrabMixinError>());
       },

@@ -46,11 +46,3 @@ class TestState {
   @override
   int get hashCode => Object.hashAll([intValue, stringValue]);
 }
-
-class FlagNotifier extends ValueNotifier<bool> {
-  FlagNotifier() : super(false);
-
-  void toggle() {
-    value = !value;
-  }
-}

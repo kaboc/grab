@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grab/grab.dart';
+
 import '../common/notifiers.dart';
-import '../common/stateless_widgets.dart';
+import '../common/widgets.dart';
 
 void main() {
   late TestChangeNotifier changeNotifier;
@@ -22,9 +24,10 @@ void main() {
       (tester) async {
         Object? value;
         await tester.pumpWidget(
-          GrabStateless(
-            listenable: changeNotifier,
-            onBuild: (Object v) => value = v,
+          StatelessWithMixin(
+            funcCalledInBuild: (context) {
+              value = context.grab(changeNotifier);
+            },
           ),
         );
         expect(value, equals(changeNotifier));
@@ -36,9 +39,10 @@ void main() {
       (tester) async {
         Object? value;
         await tester.pumpWidget(
-          GrabStateless(
-            listenable: valueNotifier,
-            onBuild: (Object v) => value = v,
+          StatelessWithMixin(
+            funcCalledInBuild: (context) {
+              value = context.grab(valueNotifier);
+            },
           ),
         );
         expect(value, equals(valueNotifier.value));
@@ -52,9 +56,9 @@ void main() {
         var stringValue = '';
 
         await tester.pumpWidget(
-          GrabStateless(
-            listenable: changeNotifier,
-            onBuild: (_) {
+          StatelessWithMixin(
+            funcCalledInBuild: (context) {
+              context.grab<TestChangeNotifier>(changeNotifier);
               intValue = changeNotifier.intValue;
               stringValue = changeNotifier.stringValue;
             },
@@ -81,9 +85,10 @@ void main() {
         var state = const TestState();
 
         await tester.pumpWidget(
-          GrabStateless(
-            listenable: valueNotifier,
-            onBuild: (Object v) => state = v as TestState,
+          StatelessWithMixin(
+            funcCalledInBuild: (context) {
+              state = context.grab(valueNotifier);
+            },
           ),
         );
 

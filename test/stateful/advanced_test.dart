@@ -1,22 +1,22 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grab/grab.dart';
+
 import '../common/notifiers.dart';
-import '../common/stateful_widgets.dart';
+import '../common/widgets.dart';
 
 void main() {
   late TestChangeNotifier changeNotifier;
   late TestValueNotifier valueNotifier;
-  late FlagNotifier flagNotifier;
 
   setUp(() {
     changeNotifier = TestChangeNotifier();
     valueNotifier = TestValueNotifier();
-    flagNotifier = FlagNotifier();
   });
   tearDown(() {
     changeNotifier.dispose();
     valueNotifier.dispose();
-    flagNotifier.dispose();
   });
 
   group('Advanced', () {
@@ -31,14 +31,16 @@ void main() {
         var buildCount = 0;
 
         await tester.pumpWidget(
-          MultiListenablesStateful(
-            listenable1: changeNotifier,
-            listenable2: valueNotifier,
-            selector1: (TestChangeNotifier notifier) => notifier.intValue,
-            selector2: (TestState state) => state.intValue,
-            onBuild: (int? v1, int? v2) {
-              value1 = v1;
-              value2 = v2;
+          StatefulWithMixin(
+            funcCalledInBuild: (context) {
+              value1 = context.grabAt(
+                changeNotifier,
+                (TestChangeNotifier n) => n.intValue,
+              );
+              value2 = context.grabAt(
+                valueNotifier,
+                (TestState s) => s.intValue,
+              );
               buildCount++;
             },
           ),
@@ -64,41 +66,72 @@ void main() {
           ..updateIntValue(10)
           ..updateStringValue('abc');
 
+        final swapNotifier = ValueNotifier(false);
+
         int? value1;
         String? value2;
-        bool? flag;
+        bool? isSwapped;
+        var buildCount = 0;
 
         await tester.pumpWidget(
-          ExtOrderSwitchStateful(
-            flagNotifier: flagNotifier,
-            listenable: valueNotifier,
-            selector1: (TestState state) => state.intValue,
-            selector2: (TestState state) => state.stringValue,
-            onBuild: (int? v1, String? v2, bool f) {
-              value1 = v1;
-              value2 = v2;
-              flag = f;
+          ValueListenableBuilder<bool>(
+            valueListenable: swapNotifier,
+            builder: (_, swapped, __) {
+              return StatefulWithMixin(
+                funcCalledInBuild: swapped
+                    ? (context) {
+                        value2 = context.grabAt(
+                          valueNotifier,
+                          (TestState s) => s.stringValue,
+                        );
+                        value1 = context.grabAt(
+                          valueNotifier,
+                          (TestState s) => s.intValue,
+                        );
+                        isSwapped = true;
+                        buildCount++;
+                      }
+                    : (context) {
+                        value1 = context.grabAt(
+                          valueNotifier,
+                          (TestState s) => s.intValue,
+                        );
+                        value2 = context.grabAt(
+                          valueNotifier,
+                          (TestState s) => s.stringValue,
+                        );
+                        isSwapped = false;
+                        buildCount++;
+                      },
+              );
             },
           ),
         );
 
         expect(value1, equals(10));
         expect(value2, equals('abc'));
-        expect(flag, isFalse);
+        expect(isSwapped, isFalse);
+        expect(buildCount, 1);
 
         valueNotifier.updateIntValue(20);
-        flagNotifier.toggle();
+        swapNotifier.value = true;
         await tester.pump();
+
         expect(value1, equals(20));
         expect(value2, equals('abc'));
-        expect(flag, isTrue);
+        expect(isSwapped, isTrue);
+        expect(buildCount, 2);
 
         valueNotifier.updateStringValue('def');
-        flagNotifier.toggle();
+        swapNotifier.value = false;
         await tester.pump();
+
         expect(value1, equals(20));
         expect(value2, equals('def'));
-        expect(flag, isFalse);
+        expect(isSwapped, isFalse);
+        expect(buildCount, 3);
+
+        swapNotifier.dispose();
       },
     );
   });
