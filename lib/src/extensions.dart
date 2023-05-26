@@ -6,6 +6,13 @@ import 'errors.dart';
 import 'mixins.dart';
 import 'types.dart';
 
+// Note:
+//
+// Changing `GrabListenableExtension on Listenable` to
+// `GrabListenableExtension<R extends Listenable> on R` will cause
+// calls on ValueListenable to invoke the GrabListenableExtension
+// extension instead of GrabValueListenableExtension.
+
 /// Extensions on [Listenable] to provide methods for Grab.
 ///
 /// The widget where the extension methods are used must have an
