@@ -2,19 +2,18 @@
 [![Flutter CI](https://github.com/kaboc/grab/workflows/Flutter%20CI/badge.svg)](https://github.com/kaboc/grab/actions)
 [![codecov](https://codecov.io/gh/kaboc/grab/branch/main/graph/badge.svg?token=TW32ANXCA7)](https://codecov.io/gh/kaboc/grab)
 
-A flutter package providing `BuildContext` extension methods to trigger a rebuild
-on change in [Listenable][Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
+A flutter package providing mixins and `BuildContext` extension methods to trigger
+a rebuild on change in [Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
 
 ## What is Grab?
 
-Grab is like a `BuildContext` extension version of `ValueListenablebuiler` or
-`AnimatedBuilder`. It comes with mixins and extension methods, [grab()][grab] and
-[grabAt()][grabAt], which are similar to `watch()` and `select()` of package:provider.
+Grab is like a method version of `ValueListenablebuiler`, `AnimatedBuilder` or
+`ListenableBuilder`.
 
-If `grab()` or `grabAt()` is used in the build method of a widget that has the Grab
-mixin and given a `Listenable` such as `ChangeNotifier` or `ValueNotifier`, the widget
-is rebuilt whenever the Listenable is updated, and the extension method is triggered
-to grab and return the updated value.
+If [grab()][grab] or [grabAt()][grabAt] is used in the build method of a widget that
+has the Grab mixin and given a `Listenable` such as `ChangeNotifier` or `ValueNotifier`,
+the widget is rebuilt whenever the Listenable is updated, and the extension method is
+triggered to grab and return the updated value.
 
 ```dart
 class SignInButton extends StatelessWidget with Grab {
@@ -22,10 +21,10 @@ class SignInButton extends StatelessWidget with Grab {
 
   @override
   Widget build(BuildContext context) {
-    final valid = context.grabAt(notifier, (SignInState s) => s.isInputValid);
+    final isValid = context.grabAt(notifier, (SignInState s) => s.isInputValid);
   
     return ElevatedButton(
-      onPressed: valid ? notifier.signIn : null,
+      onPressed: isValid ? notifier.signIn : null,
       child: const Text('Sign in'),
     );
   }
@@ -36,7 +35,7 @@ class SignInButton extends StatelessWidget with Grab {
 
 What this package does is only rebuild a widget according to changes in a Listenable
 as stated above. Despite such simplicity, however, it becomes a powerful state management
-tool if combined with some DI package such as [get_it][get_it] and [pot][pot].
+tool if combined with some DI package such as [get_it] and [pot].
 
 The Listenable does not have to be passed down the widget tree. Because Grab works as
 long as a Listenable is available in any way when [grab()][grab] or [grabAt()][grabAt] is
@@ -45,7 +44,7 @@ used, you can use your favourite DI solution to pass around the Listenable.
 ### Motivation
 
 The blog post below shows a picture of how simple state management could be.
-It inspired the author to create this package.
+It gave the inspiration for this package.
 
 - [Flutter state management for minimalists](https://suragch.medium.com/flutter-state-management-for-minimalists-4c71a2f2f0c1)
 
@@ -56,7 +55,7 @@ and too much functionality.
 
 ### Supported Listenables
 
-Anything that inherits the [Listenable][Listenable] class:
+Anything that inherits the [Listenable] class:
 
 - ChangeNotifier
 - ValueNotifier
@@ -75,14 +74,14 @@ Anything that inherits the [Listenable][Listenable] class:
 
 - [grab_lints](https://github.com/kaboc/grab-lints)
     - A Dart analyzer plugin to add lint rules for Grab.
-    - Warns you about misuse of Grab and helps you fix it quickly.
+    - Warns you about misuses of Grab and helps you fix them quickly.
 
 ## Usage
 
 ### Mixins
 
-Add [StatelessGrabMixin][StatelessGrabMixin] or [StatefulGrabMixin][StatefulGrabMixin]
-to a widget in which you want to use extensions.
+Add [StatelessGrabMixin] or [StatefulGrabMixin] to a widget in which you want to
+use extensions.
 
 ```dart
 class MyWidget extends StatelessWidget with StatelessGrabMixin
@@ -110,15 +109,15 @@ class MyWidget extends StatefulWidget with Grabful
 ### Extension methods
 
 [grab()][grab] and [grabAt()][grabAt] are available as extension methods of `BuildContext`.
-They are almost like `watch()` and `select()` of package:provider.
+They are similar to `watch()` and `select()` of package:provider.
 
 Make sure to add a mixin to the StatelessWidget / StatefulWidget where these methods are used.
-An [GrabMixinError][GrabMixinError] is thrown otherwise.
+An [GrabMixinError] is thrown otherwise.
 
 #### grab()
 
-[grab()][grab] listens to the Listenable passed to it, and the widget that the BuildContext
-belongs to is rebuilt every time the Listenable is updated.
+[grab()][grab] listens for changes in the Listenable passed to it, and the widget that
+the BuildContext belongs to is rebuilt every time the Listenable is updated.
 
 ```dart
 final notifier = ValueNotifier(0);
@@ -133,15 +132,15 @@ Widget build(BuildContext context) {
 ```
 
 The return value is the Listenable itself, or its value if the Listenable is
-[ValueListenable][ValueListenable]; that is, if the first parameter is:
+[ValueListenable]; that is, if the first parameter is:
 
+- ValueListenable (like ValueNotifier and TextEditingController)
+    - The value of the ValueListenable is returned.
 - Listenable other than ValueListenable (like ChangeNotifier and ScrollController)
     - The Listenable itself is returned.
-- ValueListenable (like ValueNotifier and TextEditingController)
-    - The value of the Listenable is returned.
 
-In the above example, the Listenable is a `ValueNotifier` extending `ValueListenable`,
-so the `count` returned by [grab()][grab] is the value of ValueNotifier.
+In the above example, the Listenable is a `ValueNotifier`, which is a subtype of
+`ValueListenable`, so the `count` returned by [grab()][grab] is the value of ValueNotifier.
 
 This is a little tricky, but has been designed that way for convenience.
 
@@ -168,12 +167,13 @@ Widget build(BuildContext context) {
 }
 ```
 
-The selector receives the Listenable itself, or its value if the Listenable is `ValueListenable`.
+If the Listenable is `ValueListenable` or its subtype, the selector receives its value.
+Otherwise, it receives the Listenable itself.
 
-In the above example, the listenable is a `ValueNotifier` extending `ValueListenable`,
-so its value, which is `Item` having `name` and `quantity`, is passed to the selector.
-The widget is rebuilt when `name` is updated, not when only `quantity` is updated,
-and the selected value (the value of `name`) is returned.
+In the above example, the Listenable is a `ValueNotifier`, which is a subtype of
+`ValueListenable`, so its value (an `Item` having `name` and `quantity`) is passed to
+the selector. The widget is rebuilt when `name` is updated but not when only `quantity`
+is updated, and the selected value (the value of `name`) is returned.
 
 ## Tips
 
@@ -184,15 +184,14 @@ as long as it is possible to evaluate the equality with its previous value using
 operator.
 
 ```dart
-final bool isEnough = context.grabAt(
+final hasEnough = context.grabAt(
   notifier,
   (Item item) => item.quantity > 5,
 );
 ```
 
 Supposing that the quantity was 3 in the previous build and has changed to 2 now, the
-widget is not rebuilt because there is no change in the value of `isEnough`; it has
-remained false.
+widget is not rebuilt because the value returned by the selector has remained false.
 
 ### Getting a property value without rebuilds
 
@@ -201,10 +200,8 @@ of the provider package. If you need a property value of a Listenable, you can j
 out of the Listenable without Grab.
 
 This is one of the good things about this package. Because Grab does not care about how
-a Listenable is passed around, you can use your favourite DI solution to inject one and
-get it anywhere without the need of using `BuildContext`, and in a widget in the presentation
-layer where `BuildContext` is available, you can just use its extensions with the Listenable
-to control rebuilds of the widget.
+a Listenable is passed around, you can use your favourite DI solution to inject ones and get
+them anywhere in any layer. Grab does not involve other layers than the presentation layer.
 
 [StatelessGrabMixin]: https://pub.dev/documentation/grab/latest/grab/StatelessGrabMixin-mixin.html
 [StatefulGrabMixin]: https://pub.dev/documentation/grab/latest/grab/StatefulGrabMixin-mixin.html

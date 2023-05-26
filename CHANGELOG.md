@@ -1,3 +1,9 @@
+## 0.3.1
+
+- Refactor extension methods.
+- Rename a debug property from `grabCounter` to `grabCallCounter`.
+- Simplify tests for maintainability.
+
 ## 0.3.0+1
 
 - Fix changelog.
