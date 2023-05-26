@@ -26,7 +26,7 @@ void main() {
         await tester.pumpWidget(
           StatefulWithMixin(
             funcCalledInBuild: (context) {
-              value = context.grab(changeNotifier);
+              value = changeNotifier.grab(context);
             },
           ),
         );
@@ -41,7 +41,7 @@ void main() {
         await tester.pumpWidget(
           StatefulWithMixin(
             funcCalledInBuild: (context) {
-              value = context.grab(valueNotifier);
+              value = valueNotifier.grab(context);
             },
           ),
         );
@@ -58,7 +58,7 @@ void main() {
         await tester.pumpWidget(
           StatefulWithMixin(
             funcCalledInBuild: (context) {
-              context.grab<TestChangeNotifier>(changeNotifier);
+              changeNotifier.grab(context);
               intValue = changeNotifier.intValue;
               stringValue = changeNotifier.stringValue;
             },
@@ -87,7 +87,7 @@ void main() {
         await tester.pumpWidget(
           StatefulWithMixin(
             funcCalledInBuild: (context) {
-              state = context.grab(valueNotifier);
+              state = valueNotifier.grab(context);
             },
           ),
         );
