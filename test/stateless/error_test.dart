@@ -7,18 +7,26 @@ import '../common/widgets.dart';
 
 void main() {
   group('GrabMixinError', () {
-    late TestChangeNotifier notifier;
+    late TestChangeNotifier changeNotifier;
+    late TestValueNotifier valueNotifier;
 
-    setUp(() => notifier = TestChangeNotifier());
-    tearDown(() => notifier.dispose());
+    setUp(() {
+      changeNotifier = TestChangeNotifier();
+      valueNotifier = TestValueNotifier();
+    });
+    tearDown(() {
+      changeNotifier.dispose();
+      valueNotifier.dispose();
+    });
 
     testWidgets(
-      'Throws if grab() is used in StatelessWidget without mixin',
+      'Throws if grab() is used on Listenable in StatelessWidget '
+      'without mixin',
       (tester) async {
         await tester.pumpWidget(
           StatelessWithoutMixin(
             funcCalledInBuild: (context) {
-              notifier.grab(context);
+              changeNotifier.grab(context);
             },
           ),
         );
@@ -27,12 +35,43 @@ void main() {
     );
 
     testWidgets(
-      'Throws if grabAt() is used in StatelessWidget without mixin',
+      'Throws if grabAt() is used on Listenable in StatelessWidget '
+      'without mixin',
       (tester) async {
         await tester.pumpWidget(
           StatelessWithoutMixin(
             funcCalledInBuild: (context) {
-              notifier.grabAt(context, (_) => null);
+              changeNotifier.grabAt(context, (_) => null);
+            },
+          ),
+        );
+        expect(tester.takeException(), isA<GrabMixinError>());
+      },
+    );
+
+    testWidgets(
+      'Throws if grab() is used on ValueListenable in StatelessWidget '
+      'without mixin',
+      (tester) async {
+        await tester.pumpWidget(
+          StatelessWithoutMixin(
+            funcCalledInBuild: (context) {
+              valueNotifier.grab(context);
+            },
+          ),
+        );
+        expect(tester.takeException(), isA<GrabMixinError>());
+      },
+    );
+
+    testWidgets(
+      'Throws if grabAt() is used on ValueListenable in StatelessWidget '
+      'without mixin',
+      (tester) async {
+        await tester.pumpWidget(
+          StatelessWithoutMixin(
+            funcCalledInBuild: (context) {
+              valueNotifier.grabAt(context, (_) => null);
             },
           ),
         );
