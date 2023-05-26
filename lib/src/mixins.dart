@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 
 import 'element.dart';
 import 'errors.dart';
-import 'extensions.dart';
 import 'types.dart';
 
 /// A mixin used on [StatelessWidget] for making Grab available
@@ -27,8 +26,8 @@ import 'types.dart';
 /// {@endtemplate}
 ///
 /// {@template grab.mixin}
-/// The [GrabMixinError] is thrown if either [GrabBuildContext.grab]
-/// or [GrabBuildContext.grabAt] is used without this mixin.
+/// The [GrabMixinError] is thrown if either `grab()` or `grabAt()`
+/// is used without this mixin.
 /// {@endtemplate}
 mixin StatelessGrabMixin on StatelessWidget {
   @override

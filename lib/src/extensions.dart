@@ -6,112 +6,218 @@ import 'errors.dart';
 import 'mixins.dart';
 import 'types.dart';
 
-/// Extensions on [BuildContext] used for Grab.
+/// Extensions on [Listenable] to provide methods for Grab.
 ///
-/// The BuildContext that the extension methods are used on has to be
-/// a [GrabElement], meaning a Grab mixin must not be missing on the
-/// widget that the BuildContext belongs to.
-///
-/// {@template grab.extension}
-/// ```dart
-/// class Counter extends StatelessWidget with Grab {
-///   @override
-///   Widget build(BuildContext context) {
-///     final count = context.grab<int>(counterNotifier);
-///     return Text('$count');
-///   }
-/// }
-/// ```
-///
-/// [Grab] in the above example is an alias of [StatelessGrabMixin].
-/// Similarly, [StatefulGrabMixin] has a shorter alias [Grabful] for
-/// convenience.
-///
-/// ```dart
-/// class Counter extends StatefulWidget with Grabful {
-///   @override
-///   State<Counter> createState() => _CounterState();
-/// }
-///
-/// class _CounterState extends State<Counter> {
-///   ...
-/// }
-/// ```
-/// {@endtemplate}
-extension GrabBuildContext on BuildContext {
-  /// Returns an object of type [S], which is the [listenable] itself,
-  /// or its value if the Listenable is a [ValueListenable].
+/// The widget where the extension methods are used must have an
+/// appropriate mixin. See [StatelessGrabMixin] and [StatefulGrabMixin]
+/// for details.
+extension GrabListenableExtension on Listenable {
+  /// Returns an object of type [R], which is the [Listenable] itself
+  /// that this method was called on.
   ///
-  /// This method listens to the Listenable, and rebuilds the widget
-  /// that the [BuildContext] this method is used on belongs to,
-  /// every time it is updated.
+  /// Not only does it return an object, but it also listens for changes
+  /// in the Listenable. Every time there is a change, it rebuilds the
+  /// widget whose [BuildContext] is passed in as an argument.
   ///
-  /// {@macro grab.extension}
-  S grab<S>(Listenable listenable) {
-    return grabAt<S, S>(
-      listenable,
-      (listenable) =>
-          listenable is ValueListenable ? listenable.value as S : listenable,
-    );
+  /// ```dart
+  /// class ItemNotifier extends ChangeNotifier {
+  ///   ItemNotifier({required this.name, required this.quantity});
+  ///
+  ///   final String name;
+  ///   final int quantity;
+  /// }
+  /// ```
+  ///
+  /// ```dart
+  /// final notifier = ItemNotifier(name: 'Milk', quantity: 3);
+  ///
+  /// ...
+  ///
+  /// class InventoryItem extends StatelessWidget with Grab {
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final n = notifier.grab<ItemNotifier>(context);
+  ///     return Text(n.name);
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// In the above example, `grab()` returns the ItemNotifier itself.
+  /// Therefore it is not much different from the code below:
+  ///
+  /// ```dart
+  /// @override
+  /// Widget build(BuildContext context) {
+  ///   notifier.grab<ItemNotifier>(context);
+  ///   return Text(notifier.name);
+  /// }
+  /// ```
+  ///
+  /// Note that specifying a wrong Listenable type causes an error
+  /// only at runtime.
+  R grab<R extends Listenable>(BuildContext context) {
+    return grabAt<R, R>(context, (listenable) => listenable);
   }
 
   /// Returns an object of type [S] chosen with the [selector].
   ///
-  /// This method listens to the [listenable], and rebuilds the widget
-  /// that the [BuildContext] this method is used on belongs to, every
-  /// time there is a change in the value returned by the [selector].
+  /// Not only does it return an object, but it also listens for changes
+  /// in the [Listenable] that the method is called on. Every time there
+  /// is a change, it rebuilds the widget whose [BuildContext] is passed
+  /// in as an argument.
   ///
-  /// The callback of the selector receives an object of type [R].
-  /// If the Listenable is a [ValueListenable], the object is its value.
-  /// Otherwise, it is the Listenable itself.
+  /// The callback of the [selector] is given an object of type [R] that
+  /// is a subtype of Listenable.
   ///
   /// ```dart
-  /// final notifier = ValueNotifier(
-  ///   Item(name: 'Milk', quantity: 3),
-  /// );
+  /// class ItemNotifier extends ChangeNotifier {
+  ///   ItemNotifier({required this.name, required this.quantity});
+  ///
+  ///   final String name;
+  ///   final int quantity;
+  /// }
   /// ```
   ///
   /// ```dart
+  /// final notifier = ItemNotifier(name: 'Milk', quantity: 3);
+  ///
+  /// ...
+  ///
   /// class InventoryItem extends StatelessWidget with Grab {
   ///   @override
   ///   Widget build(BuildContext context) {
-  ///     final name = context.grabAt(notifier, (Item item) => item.name);
+  ///     final name = notifier.grabAt(context, (ItemNotifier n) => n.name);
   ///     return Text(name);
   ///   }
   /// }
   /// ```
   ///
-  /// Instead of writing the concrete type of [R] in the parameter of
-  /// the selector, the types of the Listenable and the object passed
-  /// to the selector can be specified as below:
+  /// Instead of annotating the parameter of the selector with the
+  /// concrete type of [R], the types of the Listenable and the value
+  /// returned by the selector can be specified as below, although
+  /// it is a little more verbose.
   ///
   /// ```dart
-  /// context.grabAt<Item, String>(notifier, (item) => item.name);
+  /// notifier.grabAt<ItemNotifier, String>(context, (n) => n.name);
   /// ```
   ///
   /// Note that the value to select can be anything as long as it is
-  /// possible to evaluate its equality with the previous value with
+  /// possible to evaluate its equality with the previous value using
   /// the `==` operator.
   ///
   /// ```dart
-  /// final bool isEnough = context.grabAt(
-  ///   notifier,
-  ///   (Item item) => item.quantity > 5,
+  /// final hasEnough = notifier.grabAt(
+  ///   context,
+  ///   (ItemNotifier n) => item.quantity > 5,
   /// );
   /// ```
   ///
-  /// Supposing that the quantity was 3 in the previous build, if it
-  /// is changed to 2, the widget is not going to be rebuilt because
-  /// `isEnough` remains false.
-  S grabAt<R, S>(
-    Listenable listenable,
+  /// Supposing that the quantity was 3 in the previous build and
+  /// has changed to 2 now, the widget is not rebuilt because the
+  /// value returned by the selector has remained false.
+  S grabAt<R extends Listenable, S>(
+    BuildContext context,
     GrabSelector<R, S> selector,
   ) {
-    final element = this;
-    if (element is GrabElement) {
-      return element.listen(listenable: listenable, selector: selector);
+    if (context is GrabElement) {
+      return context.listen(listenable: this, selector: selector);
     }
+    throw GrabMixinError();
+  }
+}
 
+/// Extensions on [ValueListenable] with its value of type [R] to
+/// provide methods for Grab.
+///
+/// The widget where the extension methods are used must have an
+/// appropriate mixin. See [StatelessGrabMixin] and [StatefulGrabMixin]
+/// for details.
+extension GrabValueListenableExtension<R> on ValueListenable<R> {
+  /// Returns an object of type [R], which is the value of
+  /// [ValueListenable] that this method was called on.
+  ///
+  /// Not only does it return the value, but it also listens for changes
+  /// in the ValueListenable. Every time there is a change, it rebuilds
+  /// the widget whose [BuildContext] is passed in as an argument.
+  ///
+  /// ```dart
+  /// class Item {
+  ///   Item({required this.name, required this.quantity});
+  ///
+  ///   final String name;
+  ///   final int quantity;
+  /// }
+  /// ```
+  ///
+  /// ```dart
+  /// final notifier = ValueNotifier(
+  ///   Item(name: 'Milk', quantity: 3),
+  /// );
+  ///
+  /// ...
+  ///
+  /// class InventoryItem extends StatelessWidget with Grab {
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final item = notifier.grab(context);
+  ///     return Text(item.name);
+  ///   }
+  /// }
+  /// ```
+  R grab(BuildContext context) {
+    return grabAt(context, (value) => value);
+  }
+
+  /// Returns an object of type [S] chosen with the [selector].
+  ///
+  /// Not only does it return an object, but it also listens for changes
+  /// in the [ValueListenable] that the method is called on. Every time
+  /// there is a change, it rebuilds the widget whose [BuildContext] is
+  /// passed in as an argument.
+  ///
+  /// The callback of the [selector] is given an object of type [R] that
+  /// is the value of the ValueListenable.
+  ///
+  /// ```dart
+  /// class Item extends ChangeNotifier {
+  ///   Item({required this.name, required this.quantity});
+  ///
+  ///   final String name;
+  ///   final int quantity;
+  /// }
+  /// ```
+  ///
+  /// ```dart
+  /// final notifier = ValueNotifier(
+  ///   Item(name: 'Milk', quantity: 3),
+  /// };
+  ///
+  /// ...
+  ///
+  /// class InventoryItem extends StatelessWidget with Grab {
+  ///   @override
+  ///   Widget build(BuildContext context) {
+  ///     final name = notifier.grabAt(context, (item) => item.name);
+  ///     return Text(name);
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// Note that the value to select can be anything as long as it is
+  /// possible to evaluate its equality with the previous value using
+  /// the `==` operator.
+  ///
+  /// ```dart
+  /// final hasEnough = notifier.grabAt(context, (item) => item.quantity > 5);
+  /// ```
+  ///
+  /// Supposing that the quantity was 3 in the previous build and
+  /// has changed to 2 now, the widget is not rebuilt because the
+  /// value returned by the selector has remained false.
+  S grabAt<S>(BuildContext context, GrabSelector<R, S> selector) {
+    if (context is GrabElement) {
+      return context.listen(listenable: this, selector: selector);
+    }
     throw GrabMixinError();
   }
 }

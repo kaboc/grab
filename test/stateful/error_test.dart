@@ -18,7 +18,7 @@ void main() {
         await tester.pumpWidget(
           StatefulWithoutMixin(
             funcCalledInBuild: (context) {
-              context.grab<TestChangeNotifier>(notifier);
+              notifier.grab(context);
             },
           ),
         );
@@ -32,7 +32,7 @@ void main() {
         await tester.pumpWidget(
           StatefulWithoutMixin(
             funcCalledInBuild: (context) {
-              context.grabAt(notifier, (_) => null);
+              notifier.grabAt(context, (_) => null);
             },
           ),
         );

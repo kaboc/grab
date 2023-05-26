@@ -25,9 +25,8 @@ void main() {
       await tester.pumpWidget(
         StatelessWithMixin(
           funcCalledInBuild: (context) {
-            context
-              ..grabAt(valueNotifier1, (TestState s) => s.intValue)
-              ..grabAt(valueNotifier2, (TestState s) => s.intValue);
+            valueNotifier1.grabAt(context, (s) => s.intValue);
+            valueNotifier2.grabAt(context, (s) => s.intValue);
           },
         ),
       );
@@ -52,9 +51,8 @@ void main() {
                   children: [
                     StatelessWithMixin(
                       funcCalledInBuild: (context) {
-                        context
-                          ..grabAt(valueNotifier1, (TestState s) => s.intValue)
-                          ..grabAt(valueNotifier2, (TestState s) => s.intValue);
+                        valueNotifier1.grabAt(context, (s) => s.intValue);
+                        valueNotifier2.grabAt(context, (s) => s.intValue);
                       },
                     ),
                     ElevatedButton(

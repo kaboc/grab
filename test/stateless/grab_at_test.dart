@@ -27,10 +27,7 @@ void main() {
         await tester.pumpWidget(
           StatelessWithMixin(
             funcCalledInBuild: (context) {
-              context.grabAt(
-                changeNotifier,
-                (TestChangeNotifier n) => selectorValue = n,
-              );
+              changeNotifier.grabAt(context, (n) => selectorValue = n);
             },
           ),
         );
@@ -47,10 +44,7 @@ void main() {
         await tester.pumpWidget(
           StatelessWithMixin(
             funcCalledInBuild: (context) {
-              context.grabAt(
-                valueNotifier,
-                (TestState s) => selectorValue = s,
-              );
+              valueNotifier.grabAt(context, (s) => selectorValue = s);
             },
           ),
         );
@@ -67,10 +61,7 @@ void main() {
         await tester.pumpWidget(
           StatelessWithMixin(
             funcCalledInBuild: (context) {
-              value = context.grabAt(
-                valueNotifier,
-                (TestState s) => s.intValue,
-              );
+              value = valueNotifier.grabAt(context, (s) => s.intValue);
             },
           ),
         );
@@ -87,10 +78,7 @@ void main() {
         await tester.pumpWidget(
           StatelessWithMixin(
             funcCalledInBuild: (context) {
-              value = context.grabAt(
-                valueNotifier,
-                (TestState s) => s.intValue,
-              );
+              value = valueNotifier.grabAt(context, (s) => s.intValue);
             },
           ),
         );
@@ -115,8 +103,8 @@ void main() {
             children: [
               StatelessWithMixin(
                 funcCalledInBuild: (context) {
-                  value1 = context.grabAt(
-                    changeNotifier,
+                  value1 = changeNotifier.grabAt(
+                    context,
                     (TestChangeNotifier n) => n.intValue,
                   );
                   buildCount1++;
@@ -124,8 +112,8 @@ void main() {
               ),
               StatelessWithMixin(
                 funcCalledInBuild: (context) {
-                  value2 = context.grabAt(
-                    changeNotifier,
+                  value2 = changeNotifier.grabAt(
+                    context,
                     (TestChangeNotifier n) => n.stringValue,
                   );
                   buildCount2++;
@@ -172,19 +160,13 @@ void main() {
             children: [
               StatelessWithMixin(
                 funcCalledInBuild: (context) {
-                  value1 = context.grabAt(
-                    valueNotifier,
-                    (TestState s) => s.intValue,
-                  );
+                  value1 = valueNotifier.grabAt(context, (s) => s.intValue);
                   buildCount1++;
                 },
               ),
               StatelessWithMixin(
                 funcCalledInBuild: (context) {
-                  value2 = context.grabAt(
-                    valueNotifier,
-                    (TestState s) => s.stringValue,
-                  );
+                  value2 = valueNotifier.grabAt(context, (s) => s.stringValue);
                   buildCount2++;
                 },
               ),
@@ -229,8 +211,8 @@ void main() {
             children: [
               StatelessWithMixin(
                 funcCalledInBuild: (context) {
-                  final notifier = context.grabAt(
-                    changeNotifier,
+                  final notifier = changeNotifier.grabAt(
+                    context,
                     (TestChangeNotifier n) => n,
                   );
                   value1 = notifier.intValue;
@@ -239,8 +221,8 @@ void main() {
               ),
               StatelessWithMixin(
                 funcCalledInBuild: (context) {
-                  final notifier = context.grabAt(
-                    changeNotifier,
+                  final notifier = changeNotifier.grabAt(
+                    context,
                     (TestChangeNotifier n) => n,
                   );
                   value2 = notifier.stringValue;
@@ -282,9 +264,9 @@ void main() {
                 children: [
                   StatelessWithMixin(
                     funcCalledInBuild: (context) {
-                      value = context.grabAt(
-                        valueNotifier,
-                        (TestState s) => s.intValue * multiplier,
+                      value = valueNotifier.grabAt(
+                        context,
+                        (s) => s.intValue * multiplier,
                       );
                     },
                   ),

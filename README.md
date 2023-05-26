@@ -2,18 +2,17 @@
 [![Flutter CI](https://github.com/kaboc/grab/workflows/Flutter%20CI/badge.svg)](https://github.com/kaboc/grab/actions)
 [![codecov](https://codecov.io/gh/kaboc/grab/branch/main/graph/badge.svg?token=TW32ANXCA7)](https://codecov.io/gh/kaboc/grab)
 
-A flutter package providing mixins and `BuildContext` extension methods to trigger
-a rebuild on change in [Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
+A flutter package providing mixins and extension methods to trigger a rebuild on change
+in a [Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
 
 ## What is Grab?
 
 Grab is like a method version of `ValueListenablebuiler`, `AnimatedBuilder` or
 `ListenableBuilder`.
 
-If [grab()][grab] or [grabAt()][grabAt] is used in the build method of a widget that
-has the Grab mixin and given a `Listenable` such as `ChangeNotifier` or `ValueNotifier`,
-the widget is rebuilt whenever the Listenable is updated, and the extension method is
-triggered to grab and return the updated value.
+If [grab()][grab] or [grabAt()][grabAt] is called on a `Listenable` in the build method
+of a widget that has the Grab mixin, the widget is rebuilt whenever the Listenable is
+updated, and the extension method grabs and returns the updated value.
 
 ```dart
 class SignInButton extends StatelessWidget with Grab {
@@ -21,7 +20,7 @@ class SignInButton extends StatelessWidget with Grab {
 
   @override
   Widget build(BuildContext context) {
-    final isValid = context.grabAt(notifier, (SignInState s) => s.isInputValid);
+    final isValid = notifier.grabAt(context, (state) => state.isInputValid);
   
     return ElevatedButton(
       onPressed: isValid ? notifier.signIn : null,
@@ -63,6 +62,9 @@ Anything that inherits the [Listenable] class:
 - Animation / AnimationController
 - ScrollController
 - etc.
+
+It is recommended to use Grab with subtypes of `ValueListenable` for type safety.
+Please see the related section later in this document.
 
 ## Examples
 
@@ -108,16 +110,17 @@ class MyWidget extends StatefulWidget with Grabful
 
 ### Extension methods
 
-[grab()][grab] and [grabAt()][grabAt] are available as extension methods of `BuildContext`.
-They are similar to `watch()` and `select()` of package:provider.
+[grab()][grab] and [grabAt()][grabAt] are available as extension methods of `Listenable`
+and `ValueListenable`. They are similar to `watch()` and `select()` of package:provider.
 
 Make sure to add a mixin to the StatelessWidget / StatefulWidget where these methods are used.
 An [GrabMixinError] is thrown otherwise.
 
 #### grab()
 
-[grab()][grab] listens for changes in the Listenable passed to it, and the widget that
-the BuildContext belongs to is rebuilt every time the Listenable is updated.
+[grab()][grab] listens for changes in the Listenable that the method is called on.
+Every time there is a change, it rebuilds the widget whose BuildContext is passed in
+as an argument.
 
 ```dart
 final notifier = ValueNotifier(0);
@@ -126,13 +129,13 @@ final notifier = ValueNotifier(0);
 ```dart
 @override
 Widget build(BuildContext context) {
-  final count = context.grab<int>(notifier);
+  final count = notifier.grab(context);
   return Text('$count');
 }
 ```
 
-The return value is the Listenable itself, or its value if the Listenable is
-[ValueListenable]; that is, if the first parameter is:
+What is returned from the method depends on the type of the Listenable which the
+method is called on:
 
 - ValueListenable (like ValueNotifier and TextEditingController)
     - The value of the ValueListenable is returned.
@@ -162,7 +165,7 @@ final notifier = ValueNotifier(
 ```dart
 @override
 Widget build(BuildContext context) {
-  final name = context.grabAt(notifier, (Item item) => item.name);
+  final name = notifier.grabAt(context, (item) => item.name);
   return Text(name);
 }
 ```
@@ -175,6 +178,34 @@ In the above example, the Listenable is a `ValueNotifier`, which is a subtype of
 the selector. The widget is rebuilt when `name` is updated but not when only `quantity`
 is updated, and the selected value (the value of `name`) is returned.
 
+## Type safety
+
+The extension methods of Grab is more type-safe when used with a subtype of
+[ValueListenable] (e.g. ValueNotifier).
+
+Compare:
+
+```dart
+final valueNotifier = ValueNotifier(MyState);
+
+// `state` is inferred as MyState.
+final state = valueNotifier.grab(context);
+final prop = valueNotifier.grabAt(context, (state) => s.prop);
+```
+
+with:
+
+```dart
+final changeNotifier = MyChangeNotifier();
+
+// `n` is not automatically inferred as MyChangeNotifier.
+final n = changeNotifier.grab<MyChangeNotifier>(context);
+final value = changeNotifier.grabAt(context, (MyChangeNotifier n) => n.prop);
+
+// Specifying a wrong type causes an error only at runtime.
+changeNotifier.grab<AnotherChangeNotifier>(context);
+```
+
 ## Tips
 
 ### Value returned by selector
@@ -184,10 +215,7 @@ as long as it is possible to evaluate the equality with its previous value using
 operator.
 
 ```dart
-final hasEnough = context.grabAt(
-  notifier,
-  (Item item) => item.quantity > 5,
-);
+final hasEnough = notifier.grabAt(context, (item) => item.quantity > 5);
 ```
 
 Supposing that the quantity was 3 in the previous build and has changed to 2 now, the
@@ -208,8 +236,8 @@ them anywhere in any layer. Grab does not involve other layers than the presenta
 [Grab-mixin]: https://pub.dev/documentation/grab/latest/grab/Grab.html
 [Grabful-mixin]: https://pub.dev/documentation/grab/latest/grab/Grabful.html
 [GrabMixinError]: https://pub.dev/documentation/grab/latest/grab/GrabMixinError-class.html
-[grab]: https://pub.dev/documentation/grab/latest/grab/GrabBuildContext/grab.html
-[grabAt]: https://pub.dev/documentation/grab/latest/grab/GrabBuildContext/grabAt.html
+[grab]: https://pub.dev/documentation/grab/latest/grab/GrabValueListenableExtension/grab.html
+[grabAt]: https://pub.dev/documentation/grab/latest/grab/GrabValueListenableExtension/grabAt.html
 [Listenable]: https://api.flutter.dev/flutter/foundation/Listenable-class.html
 [ValueListenable]: https://api.flutter.dev/flutter/foundation/ValueListenable-class.html
 [get_it]: https://pub.dev/packages/get_it

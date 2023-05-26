@@ -34,8 +34,8 @@ class _AppState extends State<App> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
           onPressed: () => _notifier.value++,
+          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -49,7 +49,7 @@ class _Counter extends StatelessWidget with Grab {
   Widget build(BuildContext context) {
     // With context.grab(), the widget is rebuilt every time
     // the value of the notifier is updated.
-    final count = context.grab<int>(_notifier);
+    final count = _notifier.grab(context);
 
     return Text(
       '$count',
@@ -67,7 +67,7 @@ class _SlowCounter extends StatelessWidget with Grab {
     // of the notifier, like 0, 0, 0, 1, 1, 1, 2, 2, 2...
     // Updating the value of the notifier doesn't trigger rebuilds
     // while the result of grabAt() here remains the same.
-    final count = context.grabAt(_notifier, (int v) => v ~/ 3);
+    final count = _notifier.grabAt(context, (v) => v ~/ 3);
 
     return Text(
       '$count',
