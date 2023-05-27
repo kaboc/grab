@@ -13,7 +13,7 @@ import 'types.dart';
 // calls on ValueListenable to invoke the GrabListenableExtension
 // extension instead of GrabValueListenableExtension.
 
-/// Extensions on [Listenable] to provide methods for Grab.
+/// Extension on [Listenable] to provide methods for Grab.
 ///
 /// The widget where the extension methods are used must have an
 /// appropriate mixin. See [StatelessGrabMixin] and [StatefulGrabMixin]
@@ -133,7 +133,7 @@ extension GrabListenableExtension on Listenable {
   }
 }
 
-/// Extensions on [ValueListenable] with its value of type [R] to
+/// Extension on [ValueListenable] with its value of type [R] to
 /// provide methods for Grab.
 ///
 /// The widget where the extension methods are used must have an

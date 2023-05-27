@@ -110,7 +110,7 @@ class MyWidget extends StatefulWidget with Grabful
 
 ### Extension methods
 
-[grab()][grab] and [grabAt()][grabAt] are available as extension methods of `Listenable`
+[grab()][grab] and [grabAt()][grabAt] are available as extension methods of both `Listenable`
 and `ValueListenable`. They are similar to `watch()` and `select()` of package:provider.
 
 Make sure to add a mixin to the StatelessWidget / StatefulWidget where these methods are used.

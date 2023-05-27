@@ -1,3 +1,37 @@
+## 0.4.0
+
+- **Breaking:**
+    - Replace `BuildContext` extension with `Listenable` and `ValueListenable` extensions.
+      - Before
+        ```dart
+        final changeNotifier = MyChangeNotifier(value: 'value');
+
+        // With ChangeNotifier
+        final notifier = context.grab<MyChangeNotifier>(changeNotifier);
+        final value = context.grabAt(changeNotifier, (MyChangeNotifier n) => n.value);
+        ```
+        ```dart
+        final valueNotifier = MyValueNotifier(MyState(value: 'value'));
+
+        // With ValueNotifier
+        final state = context.grab<MyValueNotifier>(valueNotifier);
+        final value = context.grabAt(valueNotifier, (MyState state) => state.value);
+        ```
+      - After\
+        Simply swap the position of BuildContext and Listenable.
+        Types are inferred correctly now with ValueListenable (e.g. ValueNotifier), but not with other Listenables (e.g. ChangeNotifier).
+        ```dart
+        // With ChangeNotifier
+        final notifier = changeNotifier.grab<MyChangeNotifier>(context);
+        final value = changeNotifier.grabAt(context, (MyChangeNotifier n) => n.value);
+        ```
+        ```dart
+        // With ValueNotifier
+        // More type-safe and concise now
+        final state = valueNotifier.grab(context);
+        final value = valueNotifier.grabAt(context, (state) => state.value);
+        ```
+
 ## 0.3.1
 
 - Refactor extension methods.
