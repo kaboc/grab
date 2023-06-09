@@ -61,6 +61,10 @@ mixin GrabElement on ComponentElement {
   }
 
   void _listener(Listenable listenable) {
+    if (dirty) {
+      return;
+    }
+
     final comparators = _comparators[listenable]!;
 
     for (var i = 0; i < comparators.length; i++) {
