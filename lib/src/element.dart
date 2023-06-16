@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import 'types.dart';
 
-extension ListenableX on Listenable {
+extension on Listenable {
   R listenableOrValue<R>() {
     final listenable = this;
     return (listenable is ValueListenable ? listenable.value : listenable) as R;
@@ -15,7 +15,8 @@ mixin GrabElement on ComponentElement {
   final Map<Listenable, List<ValueGetter<bool>>> _comparators = {};
 
   // Only for debugging
-  var _grabCallCounter = 0;
+  // The value is reset on every build.
+  int _grabCallCounter = 0;
 
   @override
   void unmount() {
@@ -31,7 +32,7 @@ mixin GrabElement on ComponentElement {
     // is not triggered by causes other than update of listenable value.
     _reset();
 
-    // _reset() must precede a rebuild. Don't change the order.
+    // This must be after _reset(). Don't change the order.
     super.performRebuild();
   }
 
@@ -76,17 +77,6 @@ mixin GrabElement on ComponentElement {
     }
   }
 
-  // Only for debugging
-  void _incrementCallCounter() {
-    // ignore: prefer_asserts_with_message
-    assert(
-      () {
-        _grabCallCounter++;
-        return true;
-      }(),
-    );
-  }
-
   S listen<R, S>({
     required Listenable listenable,
     required GrabSelector<R, S> selector,
@@ -100,7 +90,7 @@ mixin GrabElement on ComponentElement {
     _comparators[listenable] ??= [];
     _comparators[listenable]!.add(() => _compare(listenable, selector, value));
 
-    _incrementCallCounter();
+    _debug(() => _grabCallCounter++);
 
     return value;
   }
@@ -114,4 +104,14 @@ mixin GrabElement on ComponentElement {
       ..add(IterableProperty<Listenable>('grabListenables', listeners))
       ..add(IntProperty('grabCallCounter', _grabCallCounter));
   }
+}
+
+void _debug(void Function() func) {
+  // ignore: prefer_asserts_with_message
+  assert(
+    () {
+      func();
+      return true;
+    }(),
+  );
 }
