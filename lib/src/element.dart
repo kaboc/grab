@@ -39,7 +39,7 @@ mixin GrabElement on ComponentElement {
   void _reset() {
     _removeAllListeners();
     _comparators.clear();
-    _grabCallCounter = 0;
+    _debug(() => _grabCallCounter = 0);
   }
 
   void _removeAllListeners() {
