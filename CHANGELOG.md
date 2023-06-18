@@ -1,3 +1,10 @@
+## 0.4.1
+
+- Small optimisations.
+    - Skip check for necessity of rebuild when element is already marked as dirty.
+    - Skip reset of counter for debug in production.
+- Tiny refactorings.
+
 ## 0.4.0
 
 - **Breaking:**

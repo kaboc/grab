@@ -1,6 +1,6 @@
 name: grab
-description: A flutter package providing mixins and extension methods to trigger a rebuild on change in a Listenable (ChangeNotifier, ValueNotifier, etc).
-version: 0.4.0
+description: A set of mixins and extension methods as an alternative to ListenableBuilder / ValueListenableBuilder, good for state management.
+version: 0.4.1
 repository: https://github.com/kaboc/grab
 
 environment:
