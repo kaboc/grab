@@ -47,7 +47,7 @@ class _Counter extends StatelessWidget with Grab {
 
   @override
   Widget build(BuildContext context) {
-    // With context.grab(), the widget is rebuilt every time
+    // With grab(), the widget is rebuilt every time
     // the value of the notifier is updated.
     final count = _notifier.grab(context);
 
