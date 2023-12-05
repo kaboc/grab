@@ -10,9 +10,23 @@ extension on Listenable {
   }
 }
 
+class _Handler {
+  const _Handler({
+    required this.listenerRemover,
+    required this.rebuildDeciders,
+  });
+
+  final VoidCallback listenerRemover;
+  final List<ValueGetter<bool>> rebuildDeciders;
+
+  void dispose() {
+    listenerRemover();
+    rebuildDeciders.clear();
+  }
+}
+
 mixin GrabElement on ComponentElement {
-  final Map<Listenable, VoidCallback> _listeners = {};
-  final Map<Listenable, List<ValueGetter<bool>>> _comparators = {};
+  final Map<Listenable, _Handler> _handlers = {};
 
   // Only for debugging
   // The value is reset on every build.
@@ -37,28 +51,25 @@ mixin GrabElement on ComponentElement {
   }
 
   void _reset() {
-    _removeAllListeners();
-    _comparators.clear();
+    _handlers
+      ..forEach((_, handler) => handler.dispose())
+      ..clear();
+
     _debug(() => _grabCallCounter = 0);
   }
 
-  void _removeAllListeners() {
-    _listeners
-      ..forEach((listenable, listener) => listenable.removeListener(listener))
-      ..clear();
-  }
-
-  bool _compare<R, S>(
+  bool _shouldRebuild<R, S>(
     Listenable listenable,
     GrabSelector<R, S> selector,
-    Object? value,
+    // The value as of the last rebuild.
+    S? oldValue,
   ) {
     final newValue = selector(listenable.listenableOrValue());
 
     // If the selected value is the Listenable itself, it means
     // the user has chosen to make the widget get rebuilt whenever
     // the listenable notifies, so true is returned in that case.
-    return newValue == listenable || newValue != value;
+    return newValue == listenable || newValue != oldValue;
   }
 
   void _listener(Listenable listenable) {
@@ -66,11 +77,10 @@ mixin GrabElement on ComponentElement {
       return;
     }
 
-    final comparators = _comparators[listenable]!;
+    final rebuildDeciders = _handlers[listenable]?.rebuildDeciders ?? [];
 
-    for (var i = 0; i < comparators.length; i++) {
-      final shouldRebuild = comparators[i]();
-      if (shouldRebuild) {
+    for (final shouldRebuild in rebuildDeciders) {
+      if (shouldRebuild()) {
         markNeedsBuild();
         break;
       }
@@ -81,14 +91,22 @@ mixin GrabElement on ComponentElement {
     required Listenable listenable,
     required GrabSelector<R, S> selector,
   }) {
-    if (!_listeners.containsKey(listenable)) {
-      _listeners[listenable] = () => _listener(listenable);
-      listenable.addListener(_listeners[listenable]!);
-    }
+    _handlers.putIfAbsent(listenable, () {
+      void listener() => _listener(listenable);
+      listenable.addListener(listener);
+      return _Handler(
+        listenerRemover: () => listenable.removeListener(listener),
+        rebuildDeciders: [],
+      );
+    });
 
     final value = selector(listenable.listenableOrValue());
-    _comparators[listenable] ??= [];
-    _comparators[listenable]!.add(() => _compare(listenable, selector, value));
+
+    _handlers[listenable]
+        ?.rebuildDeciders
+        // There is no need to check whether the same function is
+        // already in the list because it is cleared on every build.
+        .add(() => _shouldRebuild(listenable, selector, value));
 
     _debug(() => _grabCallCounter++);
 
@@ -99,9 +117,9 @@ mixin GrabElement on ComponentElement {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
 
-    final listeners = _listeners.keys.toList();
+    final listenables = _handlers.keys.toList();
     properties
-      ..add(IterableProperty<Listenable>('grabListenables', listeners))
+      ..add(IterableProperty<Listenable>('grabListenables', listenables))
       ..add(IntProperty('grabCallCounter', _grabCallCounter));
   }
 }
