@@ -74,9 +74,8 @@ Please see the related section later in this document.
 
 ## Companion package (optional)
 
-- [grab_lints](https://github.com/kaboc/grab-lints)
-    - A Dart analyzer plugin to add lint rules for Grab.
-    - Warns you about misuses of Grab and helps you fix them quickly.
+- [grab_lints]
+    - Warns you about common misuse and helps you fix it quickly.
 
 ## Usage
 
@@ -206,6 +205,52 @@ final value = changeNotifier.grabAt(context, (MyChangeNotifier n) => n.prop);
 changeNotifier.grab<AnotherChangeNotifier>(context);
 ```
 
+## Limitations
+
+### BuildContext
+
+The grab methods must use the `BuildContext` of a widget with a Grab mixin.
+
+```dart
+class MyWidget extends StatelessWidget {
+  const MyWidget();
+  
+  void _myMethod(BuildContext context) {
+    notifier.grab(context); // Not recommended
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    notifier.grab(context); // Good
+    
+    final context2 = context;
+    notifier.grab(context2); // Not recommended
+    
+    return Column(
+      children: [
+        Builder(
+          builder: (innerContext) {
+            notifier.grab(context); // Acceptable
+            ...
+          },
+        ),
+        Builder(
+          builder: (context) {
+            notifier.grab(context); // Runtime error
+            ...
+          },
+        ),
+      ],
+    );
+  }
+}
+```
+
+As illustrated above, misuse can lead to a runtime error. Using the `BuildContext` via
+a variable is discouraged because it easily leads to misuse or confusion. It is highly
+recommended that you introduce the [grab_lints] package to your project. It helps you
+notice incorrect or improper use of Grab.
+
 ## Tips
 
 ### Value returned by selector
@@ -241,4 +286,5 @@ them anywhere in any layer. Grab does not involve other layers than the presenta
 [Listenable]: https://api.flutter.dev/flutter/foundation/Listenable-class.html
 [ValueListenable]: https://api.flutter.dev/flutter/foundation/ValueListenable-class.html
 [get_it]: https://pub.dev/packages/get_it
+[grab_lints]: https://pub.dev/packages/grab_lints
 [pot]: https://pub.dev/packages/pot
