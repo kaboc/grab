@@ -31,7 +31,6 @@ void main() {
         ),
       );
 
-      // ignore: strict_raw_type
       final props = find.bySubtype<StatelessWithMixin>().debugProps;
       expect(props.grabListenables, equals([valueNotifier1, valueNotifier2]));
       expect(props.grabCallCounter, equals(2));
@@ -66,7 +65,6 @@ void main() {
           ),
         );
 
-        // ignore: strict_raw_type
         final props = find.bySubtype<StatelessWithMixin>().debugProps;
         expect(props.grabCallCounter, equals(2));
 

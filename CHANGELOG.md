@@ -1,3 +1,9 @@
+## 0.4.2
+
+- Refactor GrabElement for better maintainability.
+- Add the "Limitations" section to README to describe the `BuildContext` that can
+  be used with the grab methods.
+
 ## 0.4.1
 
 - Small optimisations.

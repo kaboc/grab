@@ -1,6 +1,6 @@
 name: grab
 description: A set of mixins and extension methods as an alternative to ListenableBuilder / ValueListenableBuilder, good for state management.
-version: 0.4.1
+version: 0.4.2
 repository: https://github.com/kaboc/grab
 
 environment:

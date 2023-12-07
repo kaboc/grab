@@ -15,17 +15,13 @@ of a widget that has the Grab mixin, the widget is rebuilt whenever the Listenab
 updated, and the extension method grabs and returns the updated value.
 
 ```dart
-class SignInButton extends StatelessWidget with Grab {
-  const SignInButton();
+class UserProfile extends StatelessWidget with Grab {
+  const UserProfile();
 
   @override
   Widget build(BuildContext context) {
-    final isValid = notifier.grabAt(context, (state) => state.isInputValid);
-  
-    return ElevatedButton(
-      onPressed: isValid ? notifier.signIn : null,
-      child: const Text('Sign in'),
-    );
+    final userName = userNotifier.grabAt(context, (state) => state.name);
+    return Text(userName);
   }
 }
 ```
@@ -69,6 +65,7 @@ Please see the related section later in this document.
 ## Examples
 
 - [Counters](https://github.com/kaboc/grab/tree/main/example) - simple
+- [Useless Facts](https://github.com/kaboc/async-phase/tree/main/packages/async_phase_notifier/example) - simple
 - [Todo app](https://github.com/kaboc/todo-with-grab) - basic
 - [pub.dev explorer](https://github.com/kaboc/pubdev-explorer) - advanced
 
@@ -180,28 +177,28 @@ is updated, and the selected value (the value of `name`) is returned.
 ## Type safety
 
 The extension methods of Grab is more type-safe when used with a subtype of
-[ValueListenable] (e.g. ValueNotifier).
+[ValueListenable] (e.g. `ValueNotifier`).
 
-Compare:
+ValueNotifier:
 
 ```dart
 final valueNotifier = ValueNotifier(MyState);
 
-// `state` is inferred as MyState.
+// The type is inferred.
 final state = valueNotifier.grab(context);
-final prop = valueNotifier.grabAt(context, (state) => s.prop);
+final prop = valueNotifier.grabAt(context, (state) => state.prop);
 ```
 
-with:
+ChangeNotifier (not type-safe):
 
 ```dart
 final changeNotifier = MyChangeNotifier();
 
-// `n` is not automatically inferred as MyChangeNotifier.
-final n = changeNotifier.grab<MyChangeNotifier>(context);
-final value = changeNotifier.grabAt(context, (MyChangeNotifier n) => n.prop);
+// The type is not inferred, so needs to be annotated.
+final notifier = changeNotifier.grab<MyChangeNotifier>(context);
+final prop = changeNotifier.grabAt(context, (MyChangeNotifier notifier) => notifier.prop);
 
-// Specifying a wrong type causes an error only at runtime.
+// Specifying a wrong type raises an error only at runtime.
 changeNotifier.grab<AnotherChangeNotifier>(context);
 ```
 
