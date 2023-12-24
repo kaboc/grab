@@ -209,7 +209,7 @@ changeNotifier.grab<AnotherChangeNotifier>(context);
 The grab methods must use the `BuildContext` of a widget with a Grab mixin.
 
 ```dart
-class MyWidget extends StatelessWidget {
+class MyWidget extends StatelessWidget with Grab {
   const MyWidget();
   
   void _myMethod(BuildContext context) {
