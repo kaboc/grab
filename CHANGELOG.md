@@ -1,3 +1,7 @@
+## 0.4.3
+
+- Fix missing mixin in code sample in README.
+
 ## 0.4.2
 
 - Refactor GrabElement for better maintainability.
