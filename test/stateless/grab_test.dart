@@ -24,10 +24,12 @@ void main() {
       (tester) async {
         Object? value;
         await tester.pumpWidget(
-          StatelessWithMixin(
-            funcCalledInBuild: (context) {
-              value = changeNotifier.grab(context);
-            },
+          Grab(
+            child: TestStatelessWidget(
+              funcCalledInBuild: (context) {
+                value = changeNotifier.grab(context);
+              },
+            ),
           ),
         );
         expect(value, equals(changeNotifier));
@@ -39,10 +41,12 @@ void main() {
       (tester) async {
         Object? value;
         await tester.pumpWidget(
-          StatelessWithMixin(
-            funcCalledInBuild: (context) {
-              value = valueNotifier.grab(context);
-            },
+          Grab(
+            child: TestStatelessWidget(
+              funcCalledInBuild: (context) {
+                value = valueNotifier.grab(context);
+              },
+            ),
           ),
         );
         expect(value, equals(valueNotifier.value));
@@ -56,12 +60,14 @@ void main() {
         var stringValue = '';
 
         await tester.pumpWidget(
-          StatelessWithMixin(
-            funcCalledInBuild: (context) {
-              changeNotifier.grab(context);
-              intValue = changeNotifier.intValue;
-              stringValue = changeNotifier.stringValue;
-            },
+          Grab(
+            child: TestStatelessWidget(
+              funcCalledInBuild: (context) {
+                changeNotifier.grab(context);
+                intValue = changeNotifier.intValue;
+                stringValue = changeNotifier.stringValue;
+              },
+            ),
           ),
         );
 
@@ -85,10 +91,12 @@ void main() {
         var state = const TestState();
 
         await tester.pumpWidget(
-          StatelessWithMixin(
-            funcCalledInBuild: (context) {
-              state = valueNotifier.grab(context);
-            },
+          Grab(
+            child: TestStatelessWidget(
+              funcCalledInBuild: (context) {
+                state = valueNotifier.grab(context);
+              },
+            ),
           ),
         );
 

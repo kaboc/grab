@@ -6,7 +6,7 @@ import '../common/notifiers.dart';
 import '../common/widgets.dart';
 
 void main() {
-  group('GrabMixinError', () {
+  group('GrabMissingError', () {
     late TestChangeNotifier changeNotifier;
     late TestValueNotifier valueNotifier;
 
@@ -21,61 +21,61 @@ void main() {
 
     testWidgets(
       'Throws if grab() is used on Listenable in StatelessWidget '
-      'without mixin',
+      'without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
-          StatelessWithoutMixin(
+          TestStatelessWidget(
             funcCalledInBuild: (context) {
               changeNotifier.grab(context);
             },
           ),
         );
-        expect(tester.takeException(), isA<GrabMixinError>());
+        expect(tester.takeException(), isA<GrabMissingError>());
       },
     );
 
     testWidgets(
       'Throws if grabAt() is used on Listenable in StatelessWidget '
-      'without mixin',
+      'without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
-          StatelessWithoutMixin(
+          TestStatelessWidget(
             funcCalledInBuild: (context) {
               changeNotifier.grabAt(context, (_) => null);
             },
           ),
         );
-        expect(tester.takeException(), isA<GrabMixinError>());
+        expect(tester.takeException(), isA<GrabMissingError>());
       },
     );
 
     testWidgets(
       'Throws if grab() is used on ValueListenable in StatelessWidget '
-      'without mixin',
+      'without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
-          StatelessWithoutMixin(
+          TestStatelessWidget(
             funcCalledInBuild: (context) {
               valueNotifier.grab(context);
             },
           ),
         );
-        expect(tester.takeException(), isA<GrabMixinError>());
+        expect(tester.takeException(), isA<GrabMissingError>());
       },
     );
 
     testWidgets(
       'Throws if grabAt() is used on ValueListenable in StatelessWidget '
-      'without mixin',
+      'without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
-          StatelessWithoutMixin(
+          TestStatelessWidget(
             funcCalledInBuild: (context) {
               valueNotifier.grabAt(context, (_) => null);
             },
           ),
         );
-        expect(tester.takeException(), isA<GrabMixinError>());
+        expect(tester.takeException(), isA<GrabMissingError>());
       },
     );
   });

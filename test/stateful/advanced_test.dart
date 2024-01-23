@@ -31,15 +31,17 @@ void main() {
         var buildCount = 0;
 
         await tester.pumpWidget(
-          StatefulWithMixin(
-            funcCalledInBuild: (context) {
-              value1 = changeNotifier.grabAt(
-                context,
-                (TestChangeNotifier n) => n.intValue,
-              );
-              value2 = valueNotifier.grabAt(context, (s) => s.intValue);
-              buildCount++;
-            },
+          Grab(
+            child: TestStatefulWidget(
+              funcCalledInBuild: (context) {
+                value1 = changeNotifier.grabAt(
+                  context,
+                  (TestChangeNotifier n) => n.intValue,
+                );
+                value2 = valueNotifier.grabAt(context, (s) => s.intValue);
+                buildCount++;
+              },
+            ),
           ),
         );
 
@@ -71,10 +73,10 @@ void main() {
         var buildCount = 0;
 
         await tester.pumpWidget(
-          ValueListenableBuilder<bool>(
-            valueListenable: swapNotifier,
-            builder: (_, swapped, __) {
-              return StatefulWithMixin(
+          Grab(
+            child: ValueListenableBuilder<bool>(
+              valueListenable: swapNotifier,
+              builder: (_, swapped, __) => TestStatefulWidget(
                 funcCalledInBuild: swapped
                     ? (context) {
                         value2 =
@@ -92,8 +94,8 @@ void main() {
                         isSwapped = false;
                         buildCount++;
                       },
-              );
-            },
+              ),
+            ),
           ),
         );
 
