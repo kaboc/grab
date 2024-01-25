@@ -1,10 +1,50 @@
+## 1.0.0-dev.1
+
+- Add dependency on meta.
+- **Breaking:**
+    - Raise minimum Flutter SDK version to 3.10.
+    - Great improvements to eliminate misuse and the hassle of adding a mixin to every widget. ([#4])
+        - Changes
+            - Remove mixins (`StatelessGrabMixin` and `StatefulGrabMixin`) and
+              aliases (`Grab` and `Grabful`).
+            - Rename `GrabMixinError` to `GrabMissingError`.
+            - Add `Grab` widget.
+        - Migration
+            - Wrap the root widget with the `Grab` widget.
+            - Remove Grab mixins from all the widgets where they were used.
+            - Remove grab_lints from your project if you were using it.
+            ```dart
+            void main() {
+              runApp(
+                // Wrap the root widget with Grab.
+                const Grab(child: MyApp),
+              );
+            }
+          
+            class MyApp extends StatelessWidget { // Mixin is no longer necessary!
+              @override
+              Widget build(BuildContext context) {
+                final v1 = notifier.grab(context);
+          
+                return Builder(
+                  builder: (context) {
+                    // You can now use the BuildContext passed to the builder callback too.
+                    // This was not possible until the previous version.
+                    final v2 = notifier.grab(context);
+                    return ...
+                  },
+                );
+              }
+            }
+            ```
+
 ## 0.4.3
 
 - Fix missing mixin in code sample in README.
 
 ## 0.4.2
 
-- Refactor GrabElement for better maintainability.
+- Refactor `GrabElement` for better maintainability.
 - Add the "Limitations" section to README to describe the `BuildContext` that can
   be used with the grab methods.
 
@@ -19,35 +59,35 @@
 
 - **Breaking:**
     - Replace `BuildContext` extension with `Listenable` and `ValueListenable` extensions.
-      - Before
-        ```dart
-        final changeNotifier = MyChangeNotifier(value: 'value');
-
-        // With ChangeNotifier
-        final notifier = context.grab<MyChangeNotifier>(changeNotifier);
-        final value = context.grabAt(changeNotifier, (MyChangeNotifier n) => n.value);
-        ```
-        ```dart
-        final valueNotifier = MyValueNotifier(MyState(value: 'value'));
-
-        // With ValueNotifier
-        final state = context.grab<MyValueNotifier>(valueNotifier);
-        final value = context.grabAt(valueNotifier, (MyState state) => state.value);
-        ```
-      - After\
-        Simply swap the position of BuildContext and Listenable.
-        Types are inferred correctly now with ValueListenable (e.g. ValueNotifier), but not with other Listenables (e.g. ChangeNotifier).
-        ```dart
-        // With ChangeNotifier
-        final notifier = changeNotifier.grab<MyChangeNotifier>(context);
-        final value = changeNotifier.grabAt(context, (MyChangeNotifier n) => n.value);
-        ```
-        ```dart
-        // With ValueNotifier
-        // More type-safe and concise now
-        final state = valueNotifier.grab(context);
-        final value = valueNotifier.grabAt(context, (state) => state.value);
-        ```
+        - Before
+          ```dart
+          final changeNotifier = MyChangeNotifier(value: 'value');
+  
+          // With ChangeNotifier
+          final notifier = context.grab<MyChangeNotifier>(changeNotifier);
+          final value = context.grabAt(changeNotifier, (MyChangeNotifier n) => n.value);
+          ```
+          ```dart
+          final valueNotifier = MyValueNotifier(MyState(value: 'value'));
+  
+          // With ValueNotifier
+          final state = context.grab<MyValueNotifier>(valueNotifier);
+          final value = context.grabAt(valueNotifier, (MyState state) => state.value);
+          ```
+        - After\
+          Simply swap the position of BuildContext and Listenable.
+          Types are inferred correctly now with ValueListenable (e.g. ValueNotifier), but not with other Listenables (e.g. ChangeNotifier).
+          ```dart
+          // With ChangeNotifier
+          final notifier = changeNotifier.grab<MyChangeNotifier>(context);
+          final value = changeNotifier.grabAt(context, (MyChangeNotifier n) => n.value);
+          ```
+          ```dart
+          // With ValueNotifier
+          // More type-safe and concise now
+          final state = valueNotifier.grab(context);
+          final value = valueNotifier.grabAt(context, (state) => state.value);
+          ```
 
 ## 0.3.1
 
@@ -94,3 +134,5 @@
 ## 0.0.1
 
 - Initial version.
+
+[#4]: https://github.com/kaboc/grab/pull/4

@@ -10,9 +10,9 @@ in a [Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
 Grab is like a method version of `ValueListenablebuiler`, `AnimatedBuilder` or
 `ListenableBuilder`.
 
-If [grab()] or [grabAt()] is called on a `Listenable` in the build method of a
-widget that has the Grab mixin, the widget is rebuilt whenever the Listenable is
-updated, and the extension method grabs and returns the updated value.
+If [grab()] or [grabAt()] is called on a `Listenable`, the widget associated
+with the provided BuildContext is rebuilt whenever the Listenable (or a selected
+value) is updated, and the method "grab"s the updated value and returns it.
 
 ```dart
 class UserProfile extends StatelessWidget {
