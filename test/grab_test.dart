@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grab/grab.dart';
 
-import '../common/notifiers.dart';
-import '../common/widgets.dart';
+import 'common/notifiers.dart';
+import 'common/widgets.dart';
 
 void main() {
   late TestChangeNotifier changeNotifier;
@@ -32,7 +32,7 @@ void main() {
             ),
           ),
         );
-        expect(value, equals(changeNotifier));
+        expect(value, same(changeNotifier));
       },
     );
 
@@ -49,7 +49,7 @@ void main() {
             ),
           ),
         );
-        expect(value, equals(valueNotifier.value));
+        expect(value, same(valueNotifier.value));
       },
     );
 
@@ -73,15 +73,15 @@ void main() {
 
         changeNotifier.updateIntValue(10);
         await tester.pump();
-        expect(intValue, equals(10));
-        expect(stringValue, equals(''));
+        expect(intValue, 10);
+        expect(stringValue, '');
 
         intValue = 0;
 
         changeNotifier.updateStringValue('abc');
         await tester.pump();
-        expect(intValue, equals(10));
-        expect(stringValue, equals('abc'));
+        expect(intValue, 10);
+        expect(stringValue, 'abc');
       },
     );
 
@@ -102,15 +102,15 @@ void main() {
 
         valueNotifier.updateIntValue(10);
         await tester.pump();
-        expect(state.intValue, equals(10));
+        expect(state.intValue, 10);
         expect(state.stringValue, isEmpty);
 
         state = const TestState();
 
         valueNotifier.updateStringValue('abc');
         await tester.pump();
-        expect(state.intValue, equals(10));
-        expect(state.stringValue, equals('abc'));
+        expect(state.intValue, 10);
+        expect(state.stringValue, 'abc');
       },
     );
   });

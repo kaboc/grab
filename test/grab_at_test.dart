@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grab/grab.dart';
 
-import '../common/notifiers.dart';
-import '../common/widgets.dart';
+import 'common/notifiers.dart';
+import 'common/widgets.dart';
 
 void main() {
   late TestChangeNotifier changeNotifier;
@@ -33,7 +33,7 @@ void main() {
             ),
           ),
         );
-        expect(selectorValue, equals(changeNotifier));
+        expect(selectorValue, same(changeNotifier));
       },
     );
 
@@ -52,28 +52,25 @@ void main() {
             ),
           ),
         );
-        expect(selectorValue, equals(valueNotifier.value));
+        expect(selectorValue, same(valueNotifier.value));
       },
     );
 
-    testWidgets(
-      'Returns selected value',
-      (tester) async {
-        valueNotifier.updateIntValue(10);
+    testWidgets('Returns selected value', (tester) async {
+      valueNotifier.updateIntValue(10);
 
-        int? value;
-        await tester.pumpWidget(
-          Grab(
-            child: TestStatelessWidget(
-              funcCalledInBuild: (context) {
-                value = valueNotifier.grabAt(context, (s) => s.intValue);
-              },
-            ),
+      int? value;
+      await tester.pumpWidget(
+        Grab(
+          child: TestStatelessWidget(
+            funcCalledInBuild: (context) {
+              value = valueNotifier.grabAt(context, (s) => s.intValue);
+            },
           ),
-        );
-        expect(value, equals(10));
-      },
-    );
+        ),
+      );
+      expect(value, 10);
+    });
 
     testWidgets(
       'Rebuilds widget and returns latest value when listenable is updated',
@@ -93,7 +90,7 @@ void main() {
 
         valueNotifier.updateIntValue(20);
         await tester.pump();
-        expect(value, equals(20));
+        expect(value, 20);
       },
     );
 
@@ -135,24 +132,24 @@ void main() {
 
         changeNotifier.updateIntValue(10);
         await tester.pump();
-        expect(value1, equals(10));
-        expect(value2, equals(''));
-        expect(buildCount1, equals(2));
-        expect(buildCount2, equals(1));
+        expect(value1, 10);
+        expect(value2, '');
+        expect(buildCount1, 2);
+        expect(buildCount2, 1);
 
         changeNotifier.updateStringValue('abc');
         await tester.pump();
-        expect(value1, equals(10));
-        expect(value2, equals('abc'));
-        expect(buildCount1, equals(2));
-        expect(buildCount2, equals(2));
+        expect(value1, 10);
+        expect(value2, 'abc');
+        expect(buildCount1, 2);
+        expect(buildCount2, 2);
 
         changeNotifier.updateIntValue(20);
         await tester.pump();
-        expect(value1, equals(20));
-        expect(value2, equals('abc'));
-        expect(buildCount1, equals(3));
-        expect(buildCount2, equals(2));
+        expect(value1, 20);
+        expect(value2, 'abc');
+        expect(buildCount1, 3);
+        expect(buildCount2, 2);
       },
     );
 
@@ -189,24 +186,24 @@ void main() {
 
         valueNotifier.updateIntValue(10);
         await tester.pump();
-        expect(value1, equals(10));
-        expect(value2, equals(''));
-        expect(buildCount1, equals(2));
-        expect(buildCount2, equals(1));
+        expect(value1, 10);
+        expect(value2, '');
+        expect(buildCount1, 2);
+        expect(buildCount2, 1);
 
         valueNotifier.updateStringValue('abc');
         await tester.pump();
-        expect(value1, equals(10));
-        expect(value2, equals('abc'));
-        expect(buildCount1, equals(2));
-        expect(buildCount2, equals(2));
+        expect(value1, 10);
+        expect(value2, 'abc');
+        expect(buildCount1, 2);
+        expect(buildCount2, 2);
 
         valueNotifier.updateIntValue(20);
         await tester.pump();
-        expect(value1, equals(20));
-        expect(value2, equals('abc'));
-        expect(buildCount1, equals(3));
-        expect(buildCount2, equals(2));
+        expect(value1, 20);
+        expect(value2, 'abc');
+        expect(buildCount1, 3);
+        expect(buildCount2, 2);
       },
     );
 
@@ -250,22 +247,22 @@ void main() {
 
         changeNotifier.updateIntValue(10);
         await tester.pump();
-        expect(value1, equals(10));
-        expect(value2, equals(''));
-        expect(buildCount1, equals(2));
-        expect(buildCount2, equals(2));
+        expect(value1, 10);
+        expect(value2, '');
+        expect(buildCount1, 2);
+        expect(buildCount2, 2);
 
         changeNotifier.updateStringValue('abc');
         await tester.pump();
-        expect(value1, equals(10));
-        expect(value2, equals('abc'));
-        expect(buildCount1, equals(3));
-        expect(buildCount2, equals(3));
+        expect(value1, 10);
+        expect(value2, 'abc');
+        expect(buildCount1, 3);
+        expect(buildCount2, 3);
       },
     );
 
     testWidgets(
-      'Returns new value on rebuild by other causes than listenable update too',
+      'Returns new value on rebuild by causes other than listenable update too',
       (tester) async {
         valueNotifier.updateIntValue(10);
         var multiplier = 2;
@@ -296,12 +293,12 @@ void main() {
             ),
           ),
         );
-        expect(value, equals(20));
+        expect(value, 20);
 
         final buttonFinder = find.byType(ElevatedButton).first;
         await tester.tap(buttonFinder);
         await tester.pump();
-        expect(value, equals(30));
+        expect(value, 30);
       },
     );
   });

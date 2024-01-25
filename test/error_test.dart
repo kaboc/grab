@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grab/grab.dart';
 
-import '../common/notifiers.dart';
-import '../common/widgets.dart';
+import 'common/notifiers.dart';
+import 'common/widgets.dart';
 
 void main() {
   group('GrabMissingError', () {

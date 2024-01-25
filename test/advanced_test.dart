@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grab/grab.dart';
 
-import '../common/notifiers.dart';
-import '../common/widgets.dart';
+import 'common/notifiers.dart';
+import 'common/widgets.dart';
 
 void main() {
   late TestChangeNotifier changeNotifier;
@@ -32,7 +32,7 @@ void main() {
 
         await tester.pumpWidget(
           Grab(
-            child: TestStatefulWidget(
+            child: TestStatelessWidget(
               funcCalledInBuild: (context) {
                 value1 = changeNotifier.grabAt(
                   context,
@@ -45,27 +45,28 @@ void main() {
           ),
         );
 
-        expect(value1, equals(10));
-        expect(value2, equals(20));
-        expect(buildCount, equals(1));
+        expect(value1, 10);
+        expect(value2, 20);
+        expect(buildCount, 1);
 
         changeNotifier.updateIntValue(11);
         valueNotifier.updateIntValue(12);
         await tester.pump();
-        expect(value1, equals(11));
-        expect(value2, equals(12));
-        expect(buildCount, equals(2));
+        expect(value1, 11);
+        expect(value2, 12);
+        expect(buildCount, 2);
       },
     );
 
     testWidgets(
-      "Switching order of grabAt's doesn't affect behaviour",
+      "Switching order of grab method calls doesn't affect its behaviour",
       (tester) async {
         valueNotifier
           ..updateIntValue(10)
           ..updateStringValue('abc');
 
         final swapNotifier = ValueNotifier(false);
+        addTearDown(swapNotifier.dispose);
 
         int? value1;
         String? value2;
@@ -76,7 +77,7 @@ void main() {
           Grab(
             child: ValueListenableBuilder<bool>(
               valueListenable: swapNotifier,
-              builder: (_, swapped, __) => TestStatefulWidget(
+              builder: (_, swapped, __) => TestStatelessWidget(
                 funcCalledInBuild: swapped
                     ? (context) {
                         value2 =
@@ -99,8 +100,8 @@ void main() {
           ),
         );
 
-        expect(value1, equals(10));
-        expect(value2, equals('abc'));
+        expect(value1, 10);
+        expect(value2, 'abc');
         expect(isSwapped, isFalse);
         expect(buildCount, 1);
 
@@ -108,8 +109,8 @@ void main() {
         swapNotifier.value = true;
         await tester.pump();
 
-        expect(value1, equals(20));
-        expect(value2, equals('abc'));
+        expect(value1, 20);
+        expect(value2, 'abc');
         expect(isSwapped, isTrue);
         expect(buildCount, 2);
 
@@ -117,12 +118,10 @@ void main() {
         swapNotifier.value = false;
         await tester.pump();
 
-        expect(value1, equals(20));
-        expect(value2, equals('def'));
+        expect(value1, 20);
+        expect(value2, 'def');
         expect(isSwapped, isFalse);
         expect(buildCount, 3);
-
-        swapNotifier.dispose();
       },
     );
   });
