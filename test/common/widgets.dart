@@ -3,14 +3,15 @@
 import 'package:flutter/material.dart';
 
 class TestStatelessWidget extends StatelessWidget {
-  const TestStatelessWidget({required this.funcCalledInBuild});
+  const TestStatelessWidget({required this.funcCalledInBuild, this.child});
 
   final void Function(BuildContext) funcCalledInBuild;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
     funcCalledInBuild(context);
-    return const SizedBox.shrink();
+    return child ?? const SizedBox.shrink();
   }
 }
 

@@ -66,6 +66,16 @@ class GrabManager {
 
   bool _isGrabCallsUpdated = false;
 
+  // If a callback is assigned, it is called with a record when handlers
+  // for a particular BuildContext are reset. The record has the hashCode
+  // of the BuildContext and a boolean value indicating whether resetting
+  // was performed.
+  @visibleForTesting
+  static void Function(({int contextHash, bool wasReset}))? onHandlersReset;
+
+  @visibleForTesting
+  Iterable<int> get contextHashes => _wrContexts.keys;
+
   void dispose() {
     final wrContexts = _wrContexts.values.toList().reversed;
     for (final wrContext in wrContexts) {
@@ -105,13 +115,17 @@ class GrabManager {
     // Clears the previous handlers for the provided BuildContext
     // only when this is the first call in the current build of
     // the widget associated with the BuildContext.
-    if (_grabCalls[context] == null) {
+    final shouldResetHandlers = _grabCalls[context] == null;
+    if (shouldResetHandlers) {
       _grabCalls[context] = true;
       _isGrabCallsUpdated = true;
 
       _handlers.reset(wrContext);
       _handlers[context] ??= {};
     }
+    onHandlersReset?.call(
+      (contextHash: contextHash, wasReset: shouldResetHandlers),
+    );
 
     _handlers[context]?.putIfAbsent(listenable, () {
       void listener() => _listener(listenable, wrContext);
