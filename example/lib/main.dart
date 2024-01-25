@@ -3,7 +3,11 @@ import 'package:grab/grab.dart';
 
 final _notifier = ValueNotifier(0);
 
-void main() => runApp(const App());
+void main() {
+  runApp(
+    const Grab(child: App()),
+  );
+}
 
 class App extends StatefulWidget {
   const App();
@@ -42,7 +46,7 @@ class _AppState extends State<App> {
   }
 }
 
-class _Counter extends StatelessWidget with Grab {
+class _Counter extends StatelessWidget {
   const _Counter();
 
   @override
@@ -58,7 +62,7 @@ class _Counter extends StatelessWidget with Grab {
   }
 }
 
-class _SlowCounter extends StatelessWidget with Grab {
+class _SlowCounter extends StatelessWidget {
   const _SlowCounter();
 
   @override

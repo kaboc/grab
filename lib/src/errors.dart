@@ -1,15 +1,10 @@
-import 'mixins.dart';
-import 'types.dart';
+import 'grab.dart' show Grab;
 
-/// Error thrown when `grab()` or `grabAt()` is used without a mixin,
-/// either [StatelessGrabMixin] / [Grab] in a StatelessWidget or
-/// [StatefulGrabMixin] / [Grabful] in a StatefulWidget.
-class GrabMixinError extends Error {
+/// Error thrown when `grab()` or `grabAt()` is used without a [Grab]
+/// up in the widget tree.
+class GrabMissingError extends Error {
   @override
   String toString() =>
-      'GrabMixinError: `grab()` and `grabAt()` are only available '
-      'in a StatelessWidget with the `StatelessGrabMixin`, or in the '
-      'State of a StatefulWidget with the `StatefulGrabMixin`.\n'
-      'Alternatively, you can use an alias for each: `Grab` for '
-      'StatelessGrabMixin, and `Grabful` for StatefulGrabMixin.';
+      'GrabMissingError: `grab()` and `grabAt()` are not available '
+      'unless there is a `Grab` as an ancestor.';
 }

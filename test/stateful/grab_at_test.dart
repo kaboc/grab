@@ -25,10 +25,12 @@ void main() {
       (tester) async {
         Object? selectorValue;
         await tester.pumpWidget(
-          StatefulWithMixin(
-            funcCalledInBuild: (context) {
-              changeNotifier.grabAt(context, (n) => selectorValue = n);
-            },
+          Grab(
+            child: TestStatefulWidget(
+              funcCalledInBuild: (context) {
+                changeNotifier.grabAt(context, (n) => selectorValue = n);
+              },
+            ),
           ),
         );
         expect(selectorValue, equals(changeNotifier));
@@ -42,10 +44,12 @@ void main() {
 
         Object? selectorValue;
         await tester.pumpWidget(
-          StatefulWithMixin(
-            funcCalledInBuild: (context) {
-              valueNotifier.grabAt(context, (s) => selectorValue = s);
-            },
+          Grab(
+            child: TestStatefulWidget(
+              funcCalledInBuild: (context) {
+                valueNotifier.grabAt(context, (s) => selectorValue = s);
+              },
+            ),
           ),
         );
         expect(selectorValue, equals(valueNotifier.value));
@@ -59,10 +63,12 @@ void main() {
 
         int? value;
         await tester.pumpWidget(
-          StatefulWithMixin(
-            funcCalledInBuild: (context) {
-              value = valueNotifier.grabAt(context, (s) => s.intValue);
-            },
+          Grab(
+            child: TestStatefulWidget(
+              funcCalledInBuild: (context) {
+                value = valueNotifier.grabAt(context, (s) => s.intValue);
+              },
+            ),
           ),
         );
         expect(value, equals(10));
@@ -76,10 +82,12 @@ void main() {
 
         int? value;
         await tester.pumpWidget(
-          StatefulWithMixin(
-            funcCalledInBuild: (context) {
-              value = valueNotifier.grabAt(context, (s) => s.intValue);
-            },
+          Grab(
+            child: TestStatefulWidget(
+              funcCalledInBuild: (context) {
+                value = valueNotifier.grabAt(context, (s) => s.intValue);
+              },
+            ),
           ),
         );
 
@@ -99,27 +107,29 @@ void main() {
         var buildCount2 = 0;
 
         await tester.pumpWidget(
-          Column(
-            children: [
-              StatefulWithMixin(
-                funcCalledInBuild: (context) {
-                  value1 = changeNotifier.grabAt(
-                    context,
-                    (TestChangeNotifier n) => n.intValue,
-                  );
-                  buildCount1++;
-                },
-              ),
-              StatefulWithMixin(
-                funcCalledInBuild: (context) {
-                  value2 = changeNotifier.grabAt(
-                    context,
-                    (TestChangeNotifier n) => n.stringValue,
-                  );
-                  buildCount2++;
-                },
-              ),
-            ],
+          Grab(
+            child: Column(
+              children: [
+                TestStatefulWidget(
+                  funcCalledInBuild: (context) {
+                    value1 = changeNotifier.grabAt(
+                      context,
+                      (TestChangeNotifier n) => n.intValue,
+                    );
+                    buildCount1++;
+                  },
+                ),
+                TestStatefulWidget(
+                  funcCalledInBuild: (context) {
+                    value2 = changeNotifier.grabAt(
+                      context,
+                      (TestChangeNotifier n) => n.stringValue,
+                    );
+                    buildCount2++;
+                  },
+                ),
+              ],
+            ),
           ),
         );
 
@@ -156,21 +166,24 @@ void main() {
         var buildCount2 = 0;
 
         await tester.pumpWidget(
-          Column(
-            children: [
-              StatefulWithMixin(
-                funcCalledInBuild: (context) {
-                  value1 = valueNotifier.grabAt(context, (s) => s.intValue);
-                  buildCount1++;
-                },
-              ),
-              StatefulWithMixin(
-                funcCalledInBuild: (context) {
-                  value2 = valueNotifier.grabAt(context, (s) => s.stringValue);
-                  buildCount2++;
-                },
-              ),
-            ],
+          Grab(
+            child: Column(
+              children: [
+                TestStatefulWidget(
+                  funcCalledInBuild: (context) {
+                    value1 = valueNotifier.grabAt(context, (s) => s.intValue);
+                    buildCount1++;
+                  },
+                ),
+                TestStatefulWidget(
+                  funcCalledInBuild: (context) {
+                    value2 =
+                        valueNotifier.grabAt(context, (s) => s.stringValue);
+                    buildCount2++;
+                  },
+                ),
+              ],
+            ),
           ),
         );
 
@@ -207,29 +220,31 @@ void main() {
         var buildCount2 = 0;
 
         await tester.pumpWidget(
-          Column(
-            children: [
-              StatefulWithMixin(
-                funcCalledInBuild: (context) {
-                  final notifier = changeNotifier.grabAt(
-                    context,
-                    (TestChangeNotifier n) => n,
-                  );
-                  value1 = notifier.intValue;
-                  buildCount1++;
-                },
-              ),
-              StatefulWithMixin(
-                funcCalledInBuild: (context) {
-                  final notifier = changeNotifier.grabAt(
-                    context,
-                    (TestChangeNotifier n) => n,
-                  );
-                  value2 = notifier.stringValue;
-                  buildCount2++;
-                },
-              ),
-            ],
+          Grab(
+            child: Column(
+              children: [
+                TestStatefulWidget(
+                  funcCalledInBuild: (context) {
+                    final notifier = changeNotifier.grabAt(
+                      context,
+                      (TestChangeNotifier n) => n,
+                    );
+                    value1 = notifier.intValue;
+                    buildCount1++;
+                  },
+                ),
+                TestStatefulWidget(
+                  funcCalledInBuild: (context) {
+                    final notifier = changeNotifier.grabAt(
+                      context,
+                      (TestChangeNotifier n) => n,
+                    );
+                    value2 = notifier.stringValue;
+                    buildCount2++;
+                  },
+                ),
+              ],
+            ),
           ),
         );
 
@@ -257,24 +272,26 @@ void main() {
 
         int? value;
         await tester.pumpWidget(
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: StatefulBuilder(
-              builder: (_, setState) => Column(
-                children: [
-                  StatefulWithMixin(
-                    funcCalledInBuild: (context) {
-                      value = valueNotifier.grabAt(
-                        context,
-                        (s) => s.intValue * multiplier,
-                      );
-                    },
-                  ),
-                  ElevatedButton(
-                    onPressed: () => setState(() => multiplier = 3),
-                    child: const Text('test'),
-                  ),
-                ],
+          Grab(
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: StatefulBuilder(
+                builder: (_, setState) => Column(
+                  children: [
+                    TestStatefulWidget(
+                      funcCalledInBuild: (context) {
+                        value = valueNotifier.grabAt(
+                          context,
+                          (s) => s.intValue * multiplier,
+                        );
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => multiplier = 3),
+                      child: const Text('test'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
