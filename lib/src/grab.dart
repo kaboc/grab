@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-import 'private/controller.dart';
+import 'private/manager.dart';
 
-export 'private/controller.dart' show GrabSelector;
+export 'private/manager.dart' show GrabSelector;
 
 /// A widget that enables the grab extension methods to work.
 ///
@@ -18,6 +18,10 @@ export 'private/controller.dart' show GrabSelector;
 ///   );
 /// }
 /// ```
+///
+/// Using more than one of this widget does no harm. However, it is
+/// meaningless since only the furthest one found at the start of your
+/// app is used.
 /// {@endtemplate}
 final class Grab extends StatefulWidget {
   /// Creates a Grab that enables the grab extension methods to work.
@@ -41,34 +45,36 @@ final class Grab extends StatefulWidget {
 }
 
 class _GrabState extends State<Grab> {
-  late final GrabController _controller;
+  late final GrabManager _manager;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = GrabController();
+    _manager = GrabManager();
 
     final owner = (context as Element?)?.owner;
     final originalOnBuildScheduled = owner?.onBuildScheduled;
 
     // A hack to hook events of any widget becoming dirty, including
-    // the widgets unrelated to grab.
+    // the widgets irrelevant to grab, in order to insert custom processing
+    // before a new build.
     owner?.onBuildScheduled = () {
       originalOnBuildScheduled?.call();
-
-      // Avoids resetting flags indicating whether grab methods were called
-      // when unnecessary. If it is not skipped, all BuildContexts held in
-      // the controller are iterated regardless of the states of those flags.
-      _controller.resetGrabCallsIfNecessary();
+      _manager.onBeforeBuild();
     };
   }
 
   @override
   void dispose() {
     Grab._state = null;
-    _controller.dispose();
+    _manager.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 
   S listen<R, S>({
@@ -76,15 +82,10 @@ class _GrabState extends State<Grab> {
     required Listenable listenable,
     required GrabSelector<R, S> selector,
   }) {
-    return _controller.listen(
+    return _manager.listen(
       context: context,
       listenable: listenable,
       selector: selector,
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

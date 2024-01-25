@@ -138,8 +138,7 @@ extension GrabListenableExtension on Listenable {
     BuildContext context,
     GrabSelector<R, S> selector,
   ) {
-    final scopeState = Grab.stateOf(context);
-    if (scopeState != null) {
+    if (Grab.stateOf(context) case final scopeState?) {
       return scopeState.listen(
         context: context,
         listenable: this,
@@ -252,8 +251,7 @@ extension GrabValueListenableExtension<R> on ValueListenable<R> {
   /// changed to 2 now, the widget is not rebuilt because the value
   /// returned by the selector has remained false.
   S grabAt<S>(BuildContext context, GrabSelector<R, S> selector) {
-    final scopeState = Grab.stateOf(context);
-    if (scopeState != null) {
+    if (Grab.stateOf(context) case final scopeState?) {
       return scopeState.listen(
         context: context,
         listenable: this,

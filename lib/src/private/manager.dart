@@ -20,8 +20,7 @@ extension on Listenable {
 
 extension on Expando<Map<Listenable, RebuildHandler>> {
   void reset(_WrBuildContext wrContext) {
-    final context = wrContext.target;
-    if (context != null) {
+    if (wrContext.target case final context?) {
       this[context]
         ?..forEach((_, v) => v.dispose())
         ..clear();
@@ -31,14 +30,13 @@ extension on Expando<Map<Listenable, RebuildHandler>> {
 
 extension on Expando<bool> {
   void reset(_WrBuildContext wrContext) {
-    final context = wrContext.target;
-    if (context != null) {
+    if (wrContext.target case final context?) {
       this[context] = null;
     }
   }
 }
 
-class GrabController {
+class GrabManager {
   final Map<int, _WrBuildContext> _wrContexts = {};
   final Expando<Map<Listenable, RebuildHandler>> _handlers = Expando();
 
@@ -56,14 +54,14 @@ class GrabController {
   /// The callback may be called much later than the BuildContext loses all
   /// references, or even not be called, but it is not so big an issue.
   /// The callback is just for removing a `BuildContext` that have already
-  /// become unnecessary and thus reducing the number of times [_wrContexts]
+  /// become unnecessary and thus reducing the number of times `_wrContexts`
   /// is iterated to reset all the flags held in it.
   ///
   /// [_handlers] and [_grabCalls] do not have to be manually finalized
   /// because they are [Expando]s that use `BuildContext`s as their keys,
-  /// meaning entries with old `BuildContext`s are removed automatically,
-  /// and also because the listeners stored in the `_handlers` do not
-  /// cause rebuilds after relevant `BuildContext`s are unmounted.`
+  /// meaning entries with old `BuildContext`s are invalidated automatically,
+  /// and also because the listeners stored in `_handlers` do not cause
+  /// rebuilds after relevant `BuildContext`s are unmounted.
   late final Finalizer<int> _finalizer = Finalizer(_wrContexts.remove);
 
   bool _isGrabCallsUpdated = false;
@@ -74,49 +72,22 @@ class GrabController {
       _handlers.reset(wrContext);
       _grabCalls.reset(wrContext);
 
-      final context = wrContext.target;
-      if (context != null) {
+      if (wrContext.target case final context?) {
         _finalizer.detach(context);
       }
     }
     _isGrabCallsUpdated = false;
   }
 
-  void resetGrabCallsIfNecessary() {
+  /// Resets flags in `_grabCalls` before starting to build widgets.
+  ///
+  /// Skipped when unnecessary. If not skipped, all BuildContexts
+  /// held in the GrabManager are iterated although no flags are set,
+  /// which is meaningless and should be avoided.
+  void onBeforeBuild() {
     if (_isGrabCallsUpdated) {
       _isGrabCallsUpdated = false;
       _wrContexts.values.forEach(_grabCalls.reset);
-    }
-  }
-
-  bool _shouldRebuild<R, S>(
-      Listenable listenable,
-      GrabSelector<R, S> selector,
-      // The value as of the last rebuild.
-      S? oldValue,
-      ) {
-    final newValue = selector(listenable.listenableOrValue());
-
-    // If the selected value is the Listenable itself, it means
-    // the user has chosen to make the widget get rebuilt whenever
-    // the listenable notifies, so true is returned in that case.
-    return newValue == listenable || newValue != oldValue;
-  }
-
-  void _listener(Listenable listenable, _WrBuildContext wrContext) {
-    final element = wrContext.target as Element?;
-    if (element == null || element.dirty) {
-      return;
-    }
-
-    final rebuildDeciders =
-        _handlers[element]?[listenable]?.rebuildDeciders ?? [];
-
-    for (final shouldRebuild in rebuildDeciders) {
-      if (shouldRebuild() && element.mounted) {
-        element.markNeedsBuild();
-        break;
-      }
     }
   }
 
@@ -158,5 +129,33 @@ class GrabController {
         .add(() => _shouldRebuild(listenable, selector, value));
 
     return value;
+  }
+
+  void _listener(Listenable listenable, _WrBuildContext wrContext) {
+    if (wrContext.target case Element(dirty: false) && final element) {
+      final rebuildDeciders =
+          _handlers[element]?[listenable]?.rebuildDeciders ?? [];
+
+      for (final shouldRebuild in rebuildDeciders) {
+        if (shouldRebuild() && element.mounted) {
+          element.markNeedsBuild();
+          break;
+        }
+      }
+    }
+  }
+
+  bool _shouldRebuild<R, S>(
+    Listenable listenable,
+    GrabSelector<R, S> selector,
+    // The value as of the last rebuild.
+    S? oldValue,
+  ) {
+    final newValue = selector(listenable.listenableOrValue());
+
+    // If the selected value is the Listenable itself, it means
+    // the user has chosen to make the widget get rebuilt whenever
+    // the listenable notifies, so true is returned in that case.
+    return newValue == listenable || newValue != oldValue;
   }
 }
