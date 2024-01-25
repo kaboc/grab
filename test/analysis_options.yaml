@@ -2,5 +2,6 @@ include: ../analysis_options.yaml
 
 linter:
   rules:
-    public_member_api_docs: false
+    avoid_types_on_closure_parameters: false
+    diagnostic_describe_all_properties: false
     use_key_in_widget_constructors: false
