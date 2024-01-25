@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 
 import 'private/manager.dart';
 
@@ -37,6 +38,7 @@ final class Grab extends StatefulWidget {
   @override
   State<Grab> createState() => _GrabState();
 
+  @internal
   // ignore: library_private_types_in_public_api, public_member_api_docs
   static _GrabState? stateOf(BuildContext context) {
     return _state ??
