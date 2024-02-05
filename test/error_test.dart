@@ -20,8 +20,7 @@ void main() {
     });
 
     testWidgets(
-      'Throws if grab() is used on Listenable in StatelessWidget '
-      'without Grab as ancestor',
+      'Throws if grab() is used on Listenable without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
           TestStatelessWidget(
@@ -35,8 +34,7 @@ void main() {
     );
 
     testWidgets(
-      'Throws if grabAt() is used on Listenable in StatelessWidget '
-      'without Grab as ancestor',
+      'Throws if grabAt() is used on Listenable without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
           TestStatelessWidget(
@@ -50,8 +48,7 @@ void main() {
     );
 
     testWidgets(
-      'Throws if grab() is used on ValueListenable in StatelessWidget '
-      'without Grab as ancestor',
+      'Throws if grab() is used on ValueListenable without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
           TestStatelessWidget(
@@ -65,8 +62,7 @@ void main() {
     );
 
     testWidgets(
-      'Throws if grabAt() is used on ValueListenable in StatelessWidget '
-      'without Grab as ancestor',
+      'Throws if grabAt() is used on ValueListenable without Grab as ancestor',
       (tester) async {
         await tester.pumpWidget(
           TestStatelessWidget(

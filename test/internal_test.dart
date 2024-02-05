@@ -38,20 +38,17 @@ void main() {
 
       Element? element1 = StatelessElement(const Text(''));
       final element2 = StatelessElement(const Text(''));
-      final wrContext1 = WeakReference<BuildContext>(element1);
-      final wrContext2 = WeakReference<BuildContext>(element2);
-
-      final hash1 = wrContext1.target.hashCode;
-      final hash2 = wrContext2.target.hashCode;
+      final hash1 = element1.hashCode;
+      final hash2 = element2.hashCode;
 
       manager
         ..listen(
-          context: wrContext1.target!,
+          context: element1,
           listenable: valueNotifier1,
           selector: (notifier) => notifier,
         )
         ..listen(
-          context: wrContext2.target!,
+          context: element2,
           listenable: valueNotifier2,
           selector: (notifier) => notifier,
         );
@@ -170,7 +167,6 @@ void main() {
       ]);
 
       records.clear();
-      expect(records, isEmpty);
 
       // Rebuilding a particular widget by an update of ValueNotifier.
       valueNotifier4.updateIntValue(10);
@@ -182,7 +178,6 @@ void main() {
       ]);
 
       records.clear();
-      expect(records, isEmpty);
 
       // Rebuilding multiple widgets.
       final buttonFinder = find.byType(ElevatedButton).first;
