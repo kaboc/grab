@@ -115,6 +115,46 @@ void main() {
     },
   );
 
+  test('Resources are discarded if GrabManager is disposed', () async {
+    final manager = GrabManager();
+
+    final element1 = StatelessElement(const Text(''));
+    final element2 = StatelessElement(const Text(''));
+    final hash1 = element1.hashCode;
+    final hash2 = element2.hashCode;
+
+    expect(manager.handlerCounts, <String, int?>{});
+    expect(valueNotifier1.hasListeners, isFalse);
+    expect(valueNotifier2.hasListeners, isFalse);
+
+    manager
+      ..listen(
+        context: element1,
+        listenable: valueNotifier1,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element1,
+        listenable: valueNotifier2,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element2,
+        listenable: valueNotifier1,
+        selector: (notifier) => notifier,
+      );
+
+    expect(manager.handlerCounts, {hash1: 2, hash2: 1});
+    expect(valueNotifier1.hasListeners, isTrue);
+    expect(valueNotifier2.hasListeners, isTrue);
+
+    manager.dispose();
+
+    expect(manager.handlerCounts, <String, int?>{});
+    expect(valueNotifier1.hasListeners, isFalse);
+    expect(valueNotifier2.hasListeners, isFalse);
+  });
+
   testWidgets(
     'Only handlers for widget to be built are reset right before the build '
     'and not after that, and then reset again before the next build',
