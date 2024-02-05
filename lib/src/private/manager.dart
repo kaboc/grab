@@ -34,18 +34,25 @@ extension on Expando<bool> {
 }
 
 class GrabManager {
+  /// Key-value pairs of the hash code of a BuildContext and a weak reference
+  /// to the BuildContext.
   final Map<int, _WrBuildContext> _wrContexts = {};
 
   /// Handlers per BuildContext.
   final Map<int, Map<Listenable, RebuildHandler>> _handlers = {};
 
-  /// Grab method call flag per BuildContext.
+  /// Flag per BuildContext.
   ///
-  /// This is used to decide whether it is the first call to a grab method in
-  /// the current build of the widget associated with a certain BuildContext.
-  /// The decision is necessary so that the previous handlers are reset at
-  /// the beginning of the build.
-  final Expando<bool> _grabCalls = Expando();
+  /// The flag indicates whether there has been at least one call to
+  /// a grab method in the current build of the widget associated with
+  /// the BuildContext.
+  /// If the flag is off, it means it is the first call, and thus the
+  /// previous handlers need to be reset.
+  final Expando<bool> _grabCallFlags = Expando();
+
+  /// Whether a hook is necessary to reset all the flags in `_grabCallFlags`
+  /// before the next build.
+  bool _needsHookBeforeBuild = false;
 
   /// Finalizer that removes an entry corresponding to a GCed BuildContext
   /// from `_wrContexts` and `_handlers` after the BuildContext becomes
@@ -65,14 +72,8 @@ class GrabManager {
     _handlers.reset(contextHash);
   });
 
-  bool _isGrabCallsUpdated = false;
-
-  // If a callback is assigned, it is called with a record when handlers
-  // for a particular BuildContext are reset. The record has the hashCode
-  // of the BuildContext and a boolean value indicating whether resetting
-  // was performed.
   @visibleForTesting
-  static void Function(({int contextHash, bool wasReset}))? onHandlersReset;
+  static void Function(({int contextHash, bool firstCall}))? onGrabCallEnd;
 
   @visibleForTesting
   Iterable<int> get contextHashes => _wrContexts.keys;
@@ -85,24 +86,25 @@ class GrabManager {
   void dispose() {
     for (final MapEntry(key: hash, value: wrContext) in _wrContexts.entries) {
       _handlers.reset(hash);
-      _grabCalls.reset(wrContext);
+      _grabCallFlags.reset(wrContext);
 
       if (wrContext.target case final context?) {
         _finalizer.detach(context);
       }
     }
-    _isGrabCallsUpdated = false;
+    _wrContexts.clear();
+    _needsHookBeforeBuild = false;
   }
 
-  /// Resets flags in `_grabCalls` before starting to build widgets.
+  /// Resets flags in `_grabCallFlags` before starting to build widgets.
   ///
   /// Skipped when unnecessary. If not skipped, all BuildContexts
   /// held in the GrabManager are iterated although no flags are set,
   /// which is meaningless and should be avoided.
   void onBeforeBuild() {
-    if (_isGrabCallsUpdated) {
-      _isGrabCallsUpdated = false;
-      _wrContexts.values.forEach(_grabCalls.reset);
+    if (_needsHookBeforeBuild) {
+      _needsHookBeforeBuild = false;
+      _wrContexts.values.forEach(_grabCallFlags.reset);
     }
   }
 
@@ -119,17 +121,15 @@ class GrabManager {
     // Clears the previous handlers for the provided BuildContext
     // only when this is the first call in the current build of
     // the widget associated with the BuildContext.
-    final shouldResetHandlers = _grabCalls[context] == null;
-    if (shouldResetHandlers) {
-      _grabCalls[context] = true;
-      _isGrabCallsUpdated = true;
+    final isFirstCallInCurrentBuild = _grabCallFlags[context] == null;
+
+    if (isFirstCallInCurrentBuild) {
+      _grabCallFlags[context] = true;
+      _needsHookBeforeBuild = true;
 
       _handlers.reset(contextHash);
       _handlers[contextHash] ??= {};
     }
-    onHandlersReset?.call(
-      (contextHash: contextHash, wasReset: shouldResetHandlers),
-    );
 
     _handlers[contextHash]?.putIfAbsent(listenable, () {
       void listener() => _listener(listenable, contextHash);
@@ -140,13 +140,17 @@ class GrabManager {
       );
     });
 
-    final value = selector(listenable.listenableOrValue());
+    final selectedValue = selector(listenable.listenableOrValue());
 
     _handlers[contextHash]?[listenable]
         ?.rebuildDeciders
-        .add(() => _shouldRebuild(listenable, selector, value));
+        .add(() => _shouldRebuild(listenable, selector, selectedValue));
 
-    return value;
+    onGrabCallEnd?.call(
+      (contextHash: contextHash, firstCall: isFirstCallInCurrentBuild),
+    );
+
+    return selectedValue;
   }
 
   void _listener(Listenable listenable, int contextHash) {
@@ -167,14 +171,14 @@ class GrabManager {
   bool _shouldRebuild<R, S>(
     Listenable listenable,
     GrabSelector<R, S> selector,
-    // The value as of the last rebuild.
-    S? oldValue,
+    S? oldSelectedValue,
   ) {
-    final newValue = selector(listenable.listenableOrValue());
+    final newSelectedValue = selector(listenable.listenableOrValue());
 
     // If the selected value is the Listenable itself, it means
     // the user has chosen to make the widget get rebuilt whenever
-    // the listenable notifies, so true is returned in that case.
-    return newValue == listenable || newValue != oldValue;
+    // the Listenable notifies, so true is returned in that case.
+    return newSelectedValue == listenable ||
+        newSelectedValue != oldSelectedValue;
   }
 }

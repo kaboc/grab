@@ -122,8 +122,8 @@ void main() {
     'Only handlers for widget to be built are reset right before the build '
     'and not after that, and then reset again before the next build',
     (tester) async {
-      final records = <({int contextHash, bool wasReset})>[];
-      GrabManager.onHandlersReset = records.add;
+      final records = <({int contextHash, bool firstCall})>[];
+      GrabManager.onGrabCallEnd = records.add;
 
       int? hash1;
       int? hash2;
@@ -163,10 +163,10 @@ void main() {
       );
 
       expect(records, [
-        (contextHash: hash1, wasReset: true),
-        (contextHash: hash1, wasReset: false),
-        (contextHash: hash2, wasReset: true),
-        (contextHash: hash2, wasReset: false),
+        (contextHash: hash1, firstCall: true),
+        (contextHash: hash1, firstCall: false),
+        (contextHash: hash2, firstCall: true),
+        (contextHash: hash2, firstCall: false),
       ]);
 
       records.clear();
@@ -177,8 +177,8 @@ void main() {
       await tester.pump();
 
       expect(records, [
-        (contextHash: hash2, wasReset: true),
-        (contextHash: hash2, wasReset: false),
+        (contextHash: hash2, firstCall: true),
+        (contextHash: hash2, firstCall: false),
       ]);
 
       records.clear();
@@ -190,10 +190,10 @@ void main() {
       await tester.pump();
 
       expect(records, [
-        (contextHash: hash1, wasReset: true),
-        (contextHash: hash1, wasReset: false),
-        (contextHash: hash2, wasReset: true),
-        (contextHash: hash2, wasReset: false),
+        (contextHash: hash1, firstCall: true),
+        (contextHash: hash1, firstCall: false),
+        (contextHash: hash2, firstCall: true),
+        (contextHash: hash2, firstCall: false),
       ]);
     },
   );
