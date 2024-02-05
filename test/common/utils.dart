@@ -2,7 +2,7 @@ import 'dart:developer' show reachabilityBarrier;
 
 import 'package:flutter_test/flutter_test.dart';
 
-const _kFullGcCycles = 1;
+const _kFullGcCycles = 2;
 
 // Simplified version of https://github.com/dart-lang/leak_tracker/blob/db1e95b4c34fd572e2f3c7e8eb1ca099fab681e8/pkgs/leak_tracker/lib/src/leak_tracking/helpers.dart#L25-L48.
 //

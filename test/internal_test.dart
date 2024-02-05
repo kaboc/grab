@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_protected_member
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -60,6 +62,59 @@ void main() {
       await forceGC();
 
       expect(manager.contextHashes, [hash2]);
+    },
+  );
+
+  test(
+    'Handlers are reset when relevant BuildContext is GCed, and thus '
+    'listeners are removed from relevant Listenables',
+    () async {
+      final manager = GrabManager();
+      addTearDown(manager.dispose);
+
+      Element? element1 = StatelessElement(const Text(''));
+      Element? element2 = StatelessElement(const Text(''));
+      final hash1 = element1.hashCode;
+      final hash2 = element2.hashCode;
+
+      expect(manager.handlerCounts, <String, int?>{});
+      expect(valueNotifier1.hasListeners, isFalse);
+      expect(valueNotifier2.hasListeners, isFalse);
+
+      manager
+        ..listen(
+          context: element1,
+          listenable: valueNotifier1,
+          selector: (notifier) => notifier,
+        )
+        ..listen(
+          context: element1,
+          listenable: valueNotifier2,
+          selector: (notifier) => notifier,
+        )
+        ..listen(
+          context: element2,
+          listenable: valueNotifier1,
+          selector: (notifier) => notifier,
+        );
+
+      expect(manager.handlerCounts, {hash1: 2, hash2: 1});
+      expect(valueNotifier1.hasListeners, isTrue);
+      expect(valueNotifier2.hasListeners, isTrue);
+
+      element1 = null;
+      await forceGC();
+
+      expect(manager.handlerCounts, {hash2: 1});
+      expect(valueNotifier1.hasListeners, isTrue);
+      expect(valueNotifier2.hasListeners, isFalse);
+
+      element2 = null;
+      await forceGC();
+
+      expect(manager.handlerCounts, <int, int?>{});
+      expect(valueNotifier1.hasListeners, isFalse);
+      expect(valueNotifier2.hasListeners, isFalse);
     },
   );
 

@@ -16,13 +16,12 @@ extension on Listenable {
   }
 }
 
-extension on Expando<Map<Listenable, RebuildHandler>> {
-  void reset(_WrBuildContext wrContext) {
-    if (wrContext.target case final context?) {
-      this[context]
-        ?..forEach((_, v) => v.dispose())
-        ..clear();
-    }
+extension on Map<int, Map<Listenable, RebuildHandler>> {
+  void reset(int contextHash) {
+    this[contextHash]
+      ?..forEach((_, v) => v.dispose())
+      ..clear();
+    remove(contextHash);
   }
 }
 
@@ -36,7 +35,9 @@ extension on Expando<bool> {
 
 class GrabManager {
   final Map<int, _WrBuildContext> _wrContexts = {};
-  final Expando<Map<Listenable, RebuildHandler>> _handlers = Expando();
+
+  /// Handlers per BuildContext.
+  final Map<int, Map<Listenable, RebuildHandler>> _handlers = {};
 
   /// Grab method call flag per BuildContext.
   ///
@@ -46,21 +47,23 @@ class GrabManager {
   /// the beginning of the build.
   final Expando<bool> _grabCalls = Expando();
 
-  /// Finalizer that removes a [BuildContext] from [_wrContexts] when
-  /// it is no longer referenced and GCed.
+  /// Finalizer that removes an entry corresponding to a GCed BuildContext
+  /// from `_wrContexts` and `_handlers` after the BuildContext becomes
+  /// unreachable. Handlers are not only removed but also disposed.
   ///
-  /// The callback may be called much later than the BuildContext loses all
-  /// references, or even not be called, but it is not so big an issue.
-  /// The callback is just for removing a `BuildContext` that have already
-  /// become unnecessary and thus reducing the number of times `_wrContexts`
-  /// is iterated to reset all the flags held in it.
+  /// The callback may not be called quickly when the BuildContext loses
+  /// all references, but it is not so big an issue. Even if unnecessary
+  /// listeners still remain in `_handlers` before finalization, they are
+  /// ignored after the relevant BuildContexts are unmounted.
   ///
-  /// [_handlers] and [_grabCalls] do not have to be manually finalized
-  /// because they are [Expando]s that use `BuildContext`s as their keys,
-  /// meaning entries with old `BuildContext`s are invalidated automatically,
-  /// and also because the listeners stored in `_handlers` do not cause
-  /// rebuilds after relevant `BuildContext`s are unmounted.
-  late final Finalizer<int> _finalizer = Finalizer(_wrContexts.remove);
+  /// `_grabCallFlags` does not have to be finalized here because it has
+  /// only boolean values, which does not require disposal, and also it
+  /// is an `Expando` with BuildContexts held weakly as keys, meaning
+  /// entries for old BuildContexts are purged automatically.
+  late final Finalizer<int> _finalizer = Finalizer((contextHash) {
+    _wrContexts.remove(contextHash);
+    _handlers.reset(contextHash);
+  });
 
   bool _isGrabCallsUpdated = false;
 
@@ -74,10 +77,14 @@ class GrabManager {
   @visibleForTesting
   Iterable<int> get contextHashes => _wrContexts.keys;
 
+  @visibleForTesting
+  Map<int, int?> get handlerCounts => Map.fromEntries(
+        _handlers.entries.map((v) => MapEntry(v.key, v.value.length)),
+      );
+
   void dispose() {
-    final wrContexts = _wrContexts.values.toList().reversed;
-    for (final wrContext in wrContexts) {
-      _handlers.reset(wrContext);
+    for (final MapEntry(key: hash, value: wrContext) in _wrContexts.entries) {
+      _handlers.reset(hash);
       _grabCalls.reset(wrContext);
 
       if (wrContext.target case final context?) {
@@ -107,8 +114,7 @@ class GrabManager {
     final contextHash = context.hashCode;
     _finalizer.attach(context, contextHash, detach: context);
 
-    final wrContext = _wrContexts[contextHash] ??
-        (_wrContexts[contextHash] = WeakReference(context));
+    _wrContexts[contextHash] ??= WeakReference(context);
 
     // Clears the previous handlers for the provided BuildContext
     // only when this is the first call in the current build of
@@ -118,15 +124,15 @@ class GrabManager {
       _grabCalls[context] = true;
       _isGrabCallsUpdated = true;
 
-      _handlers.reset(wrContext);
-      _handlers[context] ??= {};
+      _handlers.reset(contextHash);
+      _handlers[contextHash] ??= {};
     }
     onHandlersReset?.call(
       (contextHash: contextHash, wasReset: shouldResetHandlers),
     );
 
-    _handlers[context]?.putIfAbsent(listenable, () {
-      void listener() => _listener(listenable, wrContext);
+    _handlers[contextHash]?.putIfAbsent(listenable, () {
+      void listener() => _listener(listenable, contextHash);
       listenable.addListener(listener);
       return RebuildHandler(
         listenerRemover: () => listenable.removeListener(listener),
@@ -136,17 +142,18 @@ class GrabManager {
 
     final value = selector(listenable.listenableOrValue());
 
-    _handlers[context]?[listenable]
+    _handlers[contextHash]?[listenable]
         ?.rebuildDeciders
         .add(() => _shouldRebuild(listenable, selector, value));
 
     return value;
   }
 
-  void _listener(Listenable listenable, _WrBuildContext wrContext) {
-    if (wrContext.target case Element(dirty: false) && final element) {
+  void _listener(Listenable listenable, int contextHash) {
+    final context = _wrContexts[contextHash]?.target;
+    if (context case Element(dirty: false) && final element) {
       final rebuildDeciders =
-          _handlers[element]?[listenable]?.rebuildDeciders ?? [];
+          _handlers[contextHash]?[listenable]?.rebuildDeciders ?? [];
 
       for (final shouldRebuild in rebuildDeciders) {
         if (shouldRebuild() && element.mounted) {
