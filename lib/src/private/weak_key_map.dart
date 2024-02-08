@@ -1,16 +1,15 @@
 class WeakKeyMap<S extends Object, T> {
-  final Map<int,
-          ({WeakReference<S> key, T value, void Function()? finalization})>
+  final Map<int, ({WeakReference<S> key, T value, void Function()? finalizer})>
       _properties = {};
 
   late final Finalizer<int> _finalizer = Finalizer((hashCode) {
-    _properties[hashCode]?.finalization?.call();
+    _properties[hashCode]?.finalizer?.call();
     _properties.remove(hashCode);
   });
 
   Iterable<int> get keyHashes => _properties.keys;
 
-  void addOrUpdate(S key, T value, {void Function(T?)? finalization}) {
+  void addOrUpdate(S key, T value, {void Function(T)? finalizer}) {
     final hashCode = key.hashCode;
     if (!_properties.containsKey(hashCode)) {
       _finalizer.attach(key, hashCode, detach: key);
@@ -19,14 +18,22 @@ class WeakKeyMap<S extends Object, T> {
     _properties[hashCode] = (
       key: WeakReference(key),
       value: value,
-      finalization: finalization == null ? null : () => finalization(value),
+      finalizer: finalizer == null ? null : () => finalizer(value),
     );
   }
 
-  void putIfAbsent(S key, T value, {void Function(T?)? finalization}) {
-    if (!_properties.containsKey(key.hashCode)) {
-      addOrUpdate(key, value, finalization: finalization);
+  T putIfAbsent(
+    S key,
+    T Function() ifAbsent, {
+    void Function(T)? finalizer,
+  }) {
+    if (_properties[key.hashCode]?.value case final value?) {
+      return value;
     }
+
+    final value = ifAbsent();
+    addOrUpdate(key, value, finalizer: finalizer);
+    return value;
   }
 
   T? operator [](int hashCode) {
@@ -39,7 +46,7 @@ class WeakKeyMap<S extends Object, T> {
 
   void reset() {
     for (final value in _properties.values) {
-      value.finalization?.call();
+      value.finalizer?.call();
     }
     _properties.clear();
   }

@@ -44,8 +44,8 @@ It shows a picture of how simple state management could be.
 
 - [Flutter state management for minimalists](https://suragch.medium.com/flutter-state-management-for-minimalists-4c71a2f2f0c1)
 
-With Grab, instead of `ValueListenableBuilder` used in the article, combined
-with some sort of DI, you can focus on creating a good app with no difficulty
+Grab instead of `ValueListenableBuilder` used in the article, combined with
+some sort of DI, lets you focus on creating a good app with no difficulty
 understanding how to use it. The simplicity is an advantage over other packages
 with a larger API surface and too much functionality.
 
@@ -205,7 +205,7 @@ Supposing that the quantity was 3 in the previous build and has changed to 2 now
 the widget is not rebuilt because the value returned by the selector has remained
 false.
 
-### Getting a value without rebuilds
+### Getting a value without a rebuild
 
 Grab is a package for rebuilding a widget, so it does not provide an equivalent
 of `read()` of the provider package. If you need a field value of a Listenable,
@@ -216,8 +216,8 @@ you can just take it out of the Listenable without Grab.
 Grab does not care about how a Listenable is passed around, so you can use your
 favourite DI solution to inject ones and get them anywhere in any layer.
 
-[pottery] is a good option for this purpose. It is a package that manages the
-lifespan of [pot] (a single-type DI container) according to the lifecycle of
+[Pottery] is a good option for this purpose. It is a package that manages the
+lifetime of [Pot] (a single-type DI container) according to the lifecycle of
 Flutter. Grab used along with it provides an experience similar to package:provider
 but with more flexibility.
 

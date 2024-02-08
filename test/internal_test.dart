@@ -29,114 +29,108 @@ void main() {
     valueNotifier4.dispose();
   });
 
-  test(
-    'Listeners and cancellers are removed when relevant BuildContext is GCed',
-    () async {
-      final manager = GrabManager();
-      addTearDown(manager.dispose);
+  test('Handlers are removed when relevant BuildContext is GCed', () async {
+    final manager = GrabManager();
+    addTearDown(manager.dispose);
 
-      Element? element1 = StatelessElement(const Text(''));
-      Element? element2 = StatelessElement(const Text(''));
-      final hash1 = element1.hashCode;
-      final hash2 = element2.hashCode;
+    Element? element1 = StatelessElement(const Text(''));
+    Element? element2 = StatelessElement(const Text(''));
+    final hash1 = element1.hashCode;
+    final hash2 = element2.hashCode;
 
-      manager
-        ..listen(
-          context: element1,
-          listenable: valueNotifier1,
-          selector: (notifier) => notifier,
-        )
-        ..listen(
-          context: element1,
-          listenable: valueNotifier2,
-          selector: (notifier) => notifier,
-        )
-        ..listen(
-          context: element1,
-          listenable: valueNotifier2,
-          selector: (notifier) => notifier,
-        )
-        ..listen(
-          context: element2,
-          listenable: valueNotifier1,
-          selector: (notifier) => notifier,
-        );
+    manager
+      ..listen(
+        context: element1,
+        listenable: valueNotifier1,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element1,
+        listenable: valueNotifier2,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element1,
+        listenable: valueNotifier2,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element2,
+        listenable: valueNotifier1,
+        selector: (notifier) => notifier,
+      );
 
-      expect(manager.listenerCancellerCounts, {hash1: 2, hash2: 1});
-      expect(valueNotifier1.hasListeners, isTrue);
-      expect(valueNotifier2.hasListeners, isTrue);
+    expect(manager.handlerCounts, {hash1: 2, hash2: 1});
+    expect(valueNotifier1.hasListeners, isTrue);
+    expect(valueNotifier2.hasListeners, isTrue);
 
-      element1 = null;
-      await forceGC();
+    element1 = null;
+    await forceGC();
 
-      expect(manager.listenerCancellerCounts, {hash2: 1});
-      expect(valueNotifier1.hasListeners, isTrue);
-      expect(valueNotifier2.hasListeners, isFalse);
+    expect(manager.handlerCounts, {hash2: 1});
+    expect(valueNotifier1.hasListeners, isTrue);
+    expect(valueNotifier2.hasListeners, isFalse);
 
-      element2 = null;
-      await forceGC();
+    element2 = null;
+    await forceGC();
 
-      expect(manager.listenerCancellerCounts, isEmpty);
-      expect(valueNotifier1.hasListeners, isFalse);
-      expect(valueNotifier2.hasListeners, isFalse);
-    },
-  );
+    expect(manager.handlerCounts, isEmpty);
+    expect(valueNotifier1.hasListeners, isFalse);
+    expect(valueNotifier2.hasListeners, isFalse);
+  });
 
-  test(
-    'Listeners and cancellers are removed when relevant listenable is GCed',
-    () async {
-      final manager = GrabManager();
-      TestValueNotifier? tempNotifier = TestValueNotifier();
-      addTearDown(() {
-        manager.dispose();
-        tempNotifier?.dispose();
-      });
+  test('Handlers are removed when relevant listenable is GCed', () async {
+    final manager = GrabManager();
+    TestValueNotifier? tempNotifier = TestValueNotifier();
+    addTearDown(() {
+      manager.dispose();
+      tempNotifier?.dispose();
+    });
 
-      Element? element1 = StatelessElement(const Text(''));
-      final element2 = StatelessElement(const Text(''));
-      final hash1 = element1.hashCode;
-      final hash2 = element2.hashCode;
+    Element? element1 = StatelessElement(const Text(''));
+    final element2 = StatelessElement(const Text(''));
+    final hash1 = element1.hashCode;
+    final hash2 = element2.hashCode;
 
-      manager
-        ..listen(
-          context: element1,
-          listenable: tempNotifier,
-          selector: (notifier) => notifier,
-        )
-        ..listen(
-          context: element1,
-          listenable: valueNotifier1,
-          selector: (notifier) => notifier,
-        )
-        ..listen(
-          context: element2,
-          listenable: tempNotifier,
-          selector: (notifier) => notifier,
-        )
-        ..listen(
-          context: element2,
-          listenable: valueNotifier1,
-          selector: (notifier) => notifier,
-        );
+    manager
+      ..listen(
+        context: element1,
+        listenable: tempNotifier,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element1,
+        listenable: valueNotifier1,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element2,
+        listenable: tempNotifier,
+        selector: (notifier) => notifier,
+      )
+      ..listen(
+        context: element2,
+        listenable: valueNotifier1,
+        selector: (notifier) => notifier,
+      );
 
-      expect(manager.listenerCancellerCounts, {hash1: 2, hash2: 2});
-      expect(tempNotifier.hasListeners, isTrue);
-      expect(valueNotifier1.hasListeners, isTrue);
+    expect(manager.handlerCounts, {hash1: 2, hash2: 2});
+    expect(tempNotifier.hasListeners, isTrue);
+    expect(valueNotifier1.hasListeners, isTrue);
 
-      tempNotifier.dispose();
-      tempNotifier = null;
-      await forceGC();
+    tempNotifier.dispose();
+    tempNotifier = null;
+    await forceGC();
 
-      expect(manager.listenerCancellerCounts, {hash1: 1, hash2: 1});
-      expect(valueNotifier1.hasListeners, isTrue);
+    expect(manager.handlerCounts, {hash1: 1, hash2: 1});
+    expect(valueNotifier1.hasListeners, isTrue);
 
-      element1 = null;
-      await forceGC();
+    element1 = null;
+    await forceGC();
 
-      expect(manager.listenerCancellerCounts, {hash2: 1});
-      expect(valueNotifier1.hasListeners, isTrue);
-    },
-  );
+    expect(manager.handlerCounts, {hash2: 1});
+    expect(valueNotifier1.hasListeners, isTrue);
+  });
 
   test('Resources are discarded if GrabManager is disposed', () async {
     final manager = GrabManager();
@@ -168,20 +162,71 @@ void main() {
         selector: (notifier) => notifier,
       );
 
-    expect(manager.listenerCancellerCounts, {hash1: 2, hash2: 1});
+    expect(manager.handlerCounts, {hash1: 2, hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
     expect(valueNotifier2.hasListeners, isTrue);
 
     manager.dispose();
 
-    expect(manager.listenerCancellerCounts, isEmpty);
+    expect(manager.handlerCounts, isEmpty);
     expect(valueNotifier1.hasListeners, isFalse);
     expect(valueNotifier2.hasListeners, isFalse);
   });
 
   testWidgets(
-    'Only handlers for widget to be built are reset right before the build '
-    'and not after that, and then reset again before the next build',
+    'Grab call flags are removed during next build after relevant '
+    'BuildContext is GCed',
+    (tester) async {
+      var visible = true;
+      int? hash1;
+      int? hash2;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Grab(
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  children: [
+                    if (visible)
+                      TestStatelessWidget(
+                        funcCalledInBuild: (context) {
+                          hash1 = context.hashCode;
+                          valueNotifier1.grab(context);
+                        },
+                      ),
+                    TestStatelessWidget(
+                      funcCalledInBuild: (context) {
+                        hash2 = context.hashCode;
+                        valueNotifier2.grab(context);
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => visible = false),
+                      child: const Text('Button'),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(grabCallFlags, {hash1: true, hash2: true});
+
+      final buttonFinder = find.byType(ElevatedButton).first;
+      await tester.tap(buttonFinder);
+      await tester.pump();
+
+      expect(grabCallFlags, {hash2: true});
+    },
+  );
+
+  testWidgets(
+    'Only the rebuild deciders for the widget to be built are reset '
+    'before the build',
     (tester) async {
       final records = <({int contextHash, bool firstCall})>[];
       GrabManager.onGrabCallEnd = records.add;

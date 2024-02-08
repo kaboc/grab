@@ -14,6 +14,13 @@ typedef _Handler = ({
 /// an object of type [R] and returns an object of type [S].
 typedef GrabSelector<R, S> = S Function(R);
 
+/// Whether there has been at least one call to a grab method in
+/// the current build of the widget associated with a BuildContext.
+final Map<int, bool> _grabCallFlags = {};
+
+@visibleForTesting
+Map<int, bool> get grabCallFlags => Map.of(_grabCallFlags);
+
 extension on Listenable {
   R listenableOrValue<R>() {
     final listenable = this;
@@ -25,10 +32,6 @@ class GrabManager {
   final WeakKeyMap<BuildContext, WeakKeyMap<Listenable, _Handler>> _handlers =
       WeakKeyMap();
 
-  /// Whether there has been at least one call to a grab method in
-  /// the current build of the widget associated with a BuildContext.
-  final WeakKeyMap<BuildContext, bool> _grabCallFlags = WeakKeyMap();
-
   /// Whether a hook is necessary to reset all the flags in `_grabCallFlags`
   /// at the beginning of the next build.
   bool _needsResetFlagsBeforeBuild = false;
@@ -37,23 +40,23 @@ class GrabManager {
   static void Function(({int contextHash, bool firstCall}))? onGrabCallEnd;
 
   @visibleForTesting
-  Map<int, int> get listenerCancellerCounts {
-    final contextHashes = _handlers.keyHashes;
+  Map<int, int> get handlerCounts {
     return {
-      for (final hash in contextHashes) hash: _handlers[hash]!.values.length,
+      for (final hash in _handlers.keyHashes)
+        hash: _handlers[hash]!.values.length,
     };
   }
 
   void dispose() {
     _needsResetFlagsBeforeBuild = false;
     _handlers.reset();
-    _grabCallFlags.reset();
+    _grabCallFlags.clear();
   }
 
   void onBeforeBuild() {
     if (_needsResetFlagsBeforeBuild) {
       _needsResetFlagsBeforeBuild = false;
-      _grabCallFlags.reset();
+      _grabCallFlags.clear();
     }
   }
 
@@ -65,45 +68,43 @@ class GrabManager {
     final contextHash = context.hashCode;
     final listenableHash = listenable.hashCode;
 
-    final wrContext = WeakReference(context);
-    final wrListenable = WeakReference(listenable);
-
     final isFirstCallInCurrentBuild = _grabCallFlags[contextHash] == null;
     final handler = _handlers[contextHash]?[listenableHash];
 
     if (isFirstCallInCurrentBuild) {
       _needsResetFlagsBeforeBuild = true;
-      _grabCallFlags.addOrUpdate(context, true);
+      _grabCallFlags[contextHash] = true;
       handler?.rebuildDeciders.clear();
     }
 
-    final selectedValue = selector(listenable.listenableOrValue());
-    void listener() => _listener(wrContext, wrListenable);
+    final wrContext = WeakReference(context);
+    final wrListenable = WeakReference(listenable);
 
     if (handler == null) {
+      void listener() => _listener(wrContext, wrListenable);
       listenable.addListener(listener);
 
       _handlers.putIfAbsent(
         context,
-        WeakKeyMap<Listenable, _Handler>(),
-        finalization: (value) {
-          final handlers = value?.values ?? [];
-          for (final handler in handlers) {
+        WeakKeyMap<Listenable, _Handler>.new,
+        finalizer: (value) {
+          for (final handler in value.values) {
             handler.canceller.call();
           }
         },
-      );
-      _handlers[contextHash]!.putIfAbsent(
+      ).addOrUpdate(
         listenable,
         (
           rebuildDeciders: [],
           canceller: () => wrListenable.target?.removeListener(listener),
         ),
-        finalization: (value) => value?.canceller.call(),
+        finalizer: (value) => value.canceller(),
       );
     }
 
-    _handlers[contextHash]?[listenableHash]!
+    final selectedValue = selector(listenable.listenableOrValue());
+
+    _handlers[contextHash]![listenableHash]!
         .rebuildDeciders
         .add(() => _shouldRebuild(wrListenable, selector, selectedValue));
 
@@ -126,12 +127,12 @@ class GrabManager {
     }
 
     final handler = _handlers[element.hashCode]?[listenable.hashCode];
-    final rebuildDeciders = handler?.rebuildDeciders ?? [];
-
-    for (final shouldRebuild in rebuildDeciders) {
-      if (shouldRebuild()) {
-        element.markNeedsBuild();
-        break;
+    if (handler?.rebuildDeciders case final rebuildDeciders?) {
+      for (final shouldRebuild in rebuildDeciders) {
+        if (shouldRebuild()) {
+          element.markNeedsBuild();
+          break;
+        }
       }
     }
   }

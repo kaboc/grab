@@ -120,9 +120,8 @@ extension GrabListenableExtension on Listenable {
   /// notifier.grabAt<ItemNotifier, String>(context, (n) => n.name);
   /// ```
   ///
-  /// Note that the object to select can be anything as long as it is
-  /// possible to evaluate its equality with the previous object using
-  /// the `==` operator.
+  /// The object to select can be anything as long as it is possible to
+  /// evaluate its equality with the previous object using the `==` operator.
   ///
   /// ```dart
   /// final hasEnough = notifier.grabAt(
@@ -138,8 +137,8 @@ extension GrabListenableExtension on Listenable {
     BuildContext context,
     GrabSelector<R, S> selector,
   ) {
-    if (Grab.stateOf(context) case final scopeState?) {
-      return scopeState.listen(
+    if (Grab.stateOf(context) case final grabState?) {
+      return grabState.listen(
         context: context,
         listenable: this,
         selector: selector,
@@ -239,9 +238,8 @@ extension GrabValueListenableExtension<R> on ValueListenable<R> {
   /// }
   /// ```
   ///
-  /// Note that the object to select can be anything as long as it is
-  /// possible to evaluate its equality with the previous object using
-  /// the `==` operator.
+  /// The object to select can be anything as long as it is possible to
+  /// evaluate its equality with the previous object using the `==` operator.
   ///
   /// ```dart
   /// final hasEnough = notifier.grabAt(context, (item) => item.quantity > 5);
@@ -251,8 +249,8 @@ extension GrabValueListenableExtension<R> on ValueListenable<R> {
   /// changed to 2 now, the widget is not rebuilt because the value
   /// returned by the selector has remained false.
   S grabAt<S>(BuildContext context, GrabSelector<R, S> selector) {
-    if (Grab.stateOf(context) case final scopeState?) {
-      return scopeState.listen(
+    if (Grab.stateOf(context) case final grabState?) {
+      return grabState.listen(
         context: context,
         listenable: this,
         selector: selector,

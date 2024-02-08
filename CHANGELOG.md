@@ -11,7 +11,7 @@
             - Add `Grab` widget.
         - Migration
             - Wrap the root widget with the `Grab` widget.
-            - Remove Grab mixins from all the widgets where they were used.
+            - Remove `Grab` mixins from all the widgets where they were used.
             - Remove grab_lints from your project if you were using it.
             ```dart
             void main() {
@@ -28,7 +28,7 @@
           
                 return Builder(
                   builder: (context) {
-                    // You can now use the BuildContext passed to the builder callback too.
+                    // You can use the BuildContext passed to the builder callback too.
                     // This was not possible until the previous version.
                     final v2 = notifier.grab(context);
                     return ...
