@@ -1,3 +1,9 @@
+## 1.0.0-dev.2
+
+- Refactorings.
+    - Discard resources a little more eagerly.
+    - Revamp internal GrabManager to improve performance.
+
 ## 1.0.0-dev.1
 
 - Add dependency on meta.
