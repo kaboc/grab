@@ -1,13 +1,7 @@
-## 1.0.0-dev.2
-
-- Refactorings.
-    - Discard resources a little more eagerly.
-    - Revamp internal GrabManager to improve performance.
-
-## 1.0.0-dev.1
+## 1.0.0
 
 - Add dependency on meta.
-- **Breaking:**
+- **Breaking**:
     - Raise minimum Flutter SDK version to 3.10.
     - Great improvements to eliminate misuse and the hassle of adding a mixin to every widget. ([#4])
         - Changes
@@ -43,6 +37,22 @@
               }
             }
             ```
+- Refactorings.
+    - Discard resources a little more eagerly.
+    - Revamp internal GrabManager to improve performance.
+
+## 1.0.0-dev.2
+
+- Refactorings.
+    - Discard resources a little more eagerly.
+    - Revamp internal GrabManager to improve performance.
+
+## 1.0.0-dev.1
+
+- Add dependency on meta.
+- **Breaking**:
+    - Raise minimum Flutter SDK version to 3.10.
+    - Great improvements to eliminate misuse and the hassle of adding a mixin to every widget. ([#4])
 
 ## 0.4.3
 
@@ -63,7 +73,7 @@
 
 ## 0.4.0
 
-- **Breaking:**
+- **Breaking**:
     - Replace `BuildContext` extension with `Listenable` and `ValueListenable` extensions.
         - Before
           ```dart

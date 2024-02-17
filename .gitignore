@@ -30,3 +30,4 @@ build/
 
 coverage/
 .fvm/
+.fvmrc

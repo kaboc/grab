@@ -1,6 +1,6 @@
 name: grab
-description: Extension methods on Listenable / ValueListenable as an alternative to AnimatedBuilder, ListenableBuilder and ValueListenableBuilder.
-version: 1.0.0-dev.2
+description: A Flutter package with extension methods on Listenable / ValueListenable as an alternative to AnimatedBuilder, ListenableBuilder and ValueListenableBuilder.
+version: 1.0.0
 repository: https://github.com/kaboc/grab
 
 environment:

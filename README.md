@@ -5,14 +5,17 @@
 A flutter package providing extension methods to trigger a rebuild on change
 in a [Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
 
+There is a plan to support `Stream` too. Stay tuned!
+
 ## What is Grab?
 
 Grab is like a method version of `ValueListenablebuiler`, `AnimatedBuilder` or
 `ListenableBuilder`.
 
 If [grab()] or [grabAt()] is called on a `Listenable`, the widget associated
-with the provided BuildContext is rebuilt whenever the Listenable (or a selected
-value) is updated, and the method "grab"s the updated value and returns it.
+with the provided `BuildContext` is rebuilt whenever the Listenable (or a
+selected value) is updated, and as a result, the method "grab"s and returns
+the updated value.
 
 ```dart
 class UserProfile extends StatelessWidget {
