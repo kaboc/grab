@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import 'errors.dart';
 import 'grab.dart';
+import 'typedefs.dart';
 
 // Note:
 //

@@ -165,68 +165,19 @@ void main() {
     expect(manager.handlerCounts, {hash1: 2, hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
     expect(valueNotifier2.hasListeners, isTrue);
+    expect(grabCallFlags, isNotEmpty);
 
     manager.dispose();
 
     expect(manager.handlerCounts, isEmpty);
     expect(valueNotifier1.hasListeners, isFalse);
     expect(valueNotifier2.hasListeners, isFalse);
+    expect(grabCallFlags, isEmpty);
   });
 
   testWidgets(
-    'Grab call flags are removed during next build after relevant '
-    'BuildContext is GCed',
-    (tester) async {
-      var visible = true;
-      int? hash1;
-      int? hash2;
-
-      await tester.pumpWidget(
-        Directionality(
-          textDirection: TextDirection.ltr,
-          child: Grab(
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Column(
-                  children: [
-                    if (visible)
-                      TestStatelessWidget(
-                        funcCalledInBuild: (context) {
-                          hash1 = context.hashCode;
-                          valueNotifier1.grab(context);
-                        },
-                      ),
-                    TestStatelessWidget(
-                      funcCalledInBuild: (context) {
-                        hash2 = context.hashCode;
-                        valueNotifier2.grab(context);
-                      },
-                    ),
-                    ElevatedButton(
-                      onPressed: () => setState(() => visible = false),
-                      child: const Text('Button'),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      expect(grabCallFlags, {hash1: true, hash2: true});
-
-      final buttonFinder = find.byType(ElevatedButton).first;
-      await tester.tap(buttonFinder);
-      await tester.pump();
-
-      expect(grabCallFlags, {hash2: true});
-    },
-  );
-
-  testWidgets(
-    'Only the rebuild deciders for the widget to be built are reset '
-    'before the build',
+    'isFirstCallInCurrentBuild flag in listen method is only true during first '
+    'call in a build even if the method is called multiple times in the build',
     (tester) async {
       final records = <({int contextHash, bool firstCall})>[];
       GrabManager.onGrabCallEnd = records.add;
@@ -299,6 +250,62 @@ void main() {
         (contextHash: hash2, firstCall: true),
         (contextHash: hash2, firstCall: false),
       ]);
+    },
+  );
+
+  testWidgets(
+    'Grab call flags are cleared before the first build in a frame, '
+    'and set again at first listen() call in a build of every widget',
+    (tester) async {
+      var tapCount = 0;
+      int? hash1;
+      int? hash2;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Grab(
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  children: [
+                    if (tapCount < 1)
+                      TestStatelessWidget(
+                        funcCalledInBuild: (context) {
+                          hash1 = context.hashCode;
+                          valueNotifier1.grab(context);
+                        },
+                      ),
+                    if (tapCount < 2)
+                      TestStatelessWidget(
+                        funcCalledInBuild: (context) {
+                          hash2 = context.hashCode;
+                          valueNotifier2.grab(context);
+                        },
+                      ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => tapCount++),
+                      child: const Text('Button'),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      final buttonFinder = find.byType(ElevatedButton).first;
+
+      expect(grabCallFlags, {hash1: true, hash2: true});
+
+      await tester.tap(buttonFinder);
+      await tester.pump();
+      expect(grabCallFlags, {hash2: true});
+
+      await tester.tap(buttonFinder);
+      await tester.pump();
+      expect(grabCallFlags, isEmpty);
     },
   );
 }

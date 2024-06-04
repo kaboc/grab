@@ -2,8 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart' show internal;
 
 import 'private/manager.dart';
-
-export 'private/manager.dart' show GrabSelector;
+import 'typedefs.dart';
 
 /// A widget that enables the grab extension methods to work.
 ///

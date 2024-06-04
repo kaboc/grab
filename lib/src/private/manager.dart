@@ -1,18 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../typedefs.dart';
 import 'weak_key_map.dart';
 
-typedef _WrBuildContext = WeakReference<BuildContext>;
-typedef _WrListenable = WeakReference<Listenable>;
 typedef _Handler = ({
   List<bool Function()> rebuildDeciders,
   void Function() canceller,
 });
-
-/// The signature for the `selector` callback of `grabAt()` that receives
-/// an object of type [R] and returns an object of type [S].
-typedef GrabSelector<R, S> = S Function(R);
 
 /// Whether there has been at least one call to a grab method in
 /// the current build of the widget associated with a BuildContext.
@@ -108,37 +103,41 @@ class GrabManager {
         .rebuildDeciders
         .add(() => _shouldRebuild(wrListenable, selector, selectedValue));
 
-    onGrabCallEnd?.call(
-      (contextHash: contextHash, firstCall: isFirstCallInCurrentBuild),
-    );
+    if (kDebugMode) {
+      onGrabCallEnd?.call(
+        (contextHash: contextHash, firstCall: isFirstCallInCurrentBuild),
+      );
+    }
 
     return selectedValue;
   }
 
-  void _listener(_WrBuildContext wrContext, _WrListenable wrListenable) {
+  void _listener(
+    WeakReference<BuildContext> wrContext,
+    WeakReference<Listenable> wrListenable,
+  ) {
+    final elm = wrContext.target as Element?;
     final listenable = wrListenable.target;
-    if (listenable == null) {
+    if (elm == null || elm.dirty || !elm.mounted || listenable == null) {
       return;
     }
 
-    final element = wrContext.target as Element?;
-    if (element == null || element.dirty || !element.mounted) {
+    final deciders =
+        _handlers[elm.hashCode]?[listenable.hashCode]?.rebuildDeciders;
+    if (deciders == null) {
       return;
     }
 
-    final handler = _handlers[element.hashCode]?[listenable.hashCode];
-    if (handler?.rebuildDeciders case final rebuildDeciders?) {
-      for (final shouldRebuild in rebuildDeciders) {
-        if (shouldRebuild()) {
-          element.markNeedsBuild();
-          break;
-        }
+    for (final shouldRebuild in deciders) {
+      if (shouldRebuild()) {
+        elm.markNeedsBuild();
+        break;
       }
     }
   }
 
   bool _shouldRebuild<R, S>(
-    _WrListenable wrListenable,
+    WeakReference<Listenable> wrListenable,
     GrabSelector<R, S> selector,
     S? oldSelectedValue,
   ) {
