@@ -162,17 +162,17 @@ void main() {
         selector: (notifier) => notifier,
       );
 
+    expect(manager.grabCallFlags, isNotEmpty);
     expect(manager.listenerCounts, {hash1: 2, hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
     expect(valueNotifier2.hasListeners, isTrue);
-    expect(grabCallFlags, isNotEmpty);
 
     manager.dispose();
 
+    expect(manager.grabCallFlags, isEmpty);
     expect(manager.listenerCounts, isEmpty);
     expect(valueNotifier1.hasListeners, isFalse);
     expect(valueNotifier2.hasListeners, isFalse);
-    expect(grabCallFlags, isEmpty);
   });
 
   testWidgets(
@@ -180,8 +180,6 @@ void main() {
     'call in a build even if the method is called multiple times in the build',
     (tester) async {
       final records = <({int contextHash, bool firstCall})>[];
-      GrabManager.onGrabCallEnd = records.add;
-
       int? hash1;
       int? hash2;
 
@@ -191,6 +189,9 @@ void main() {
           child: Grab(
             child: StatefulBuilder(
               builder: (context, setState) {
+                final manager = Grab.stateOf(context)?.manager;
+                manager?.onGrabCallEnd ??= records.add;
+
                 return Column(
                   children: [
                     TestStatelessWidget(
@@ -257,6 +258,7 @@ void main() {
     'Grab call flags are cleared before the first build in a frame, '
     'and set again at first listen() call in a build of every widget',
     (tester) async {
+      GrabManager? manager;
       var tapCount = 0;
       int? hash1;
       int? hash2;
@@ -267,6 +269,8 @@ void main() {
           child: Grab(
             child: StatefulBuilder(
               builder: (context, setState) {
+                manager ??= Grab.stateOf(context)?.manager;
+
                 return Column(
                   children: [
                     if (tapCount < 1)
@@ -297,15 +301,15 @@ void main() {
 
       final buttonFinder = find.byType(ElevatedButton).first;
 
-      expect(grabCallFlags, {hash1: true, hash2: true});
+      expect(manager?.grabCallFlags, {hash1: true, hash2: true});
 
       await tester.tap(buttonFinder);
       await tester.pump();
-      expect(grabCallFlags, {hash2: true});
+      expect(manager?.grabCallFlags, {hash2: true});
 
       await tester.tap(buttonFinder);
       await tester.pump();
-      expect(grabCallFlags, isEmpty);
+      expect(manager?.grabCallFlags, isEmpty);
     },
   );
 }

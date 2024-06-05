@@ -47,6 +47,10 @@ final class Grab extends StatefulWidget {
 class _GrabState extends State<Grab> {
   late final GrabManager _manager;
 
+  @visibleForTesting
+  // ignore: diagnostic_describe_all_properties
+  GrabManager get manager => _manager;
+
   @override
   void initState() {
     super.initState();

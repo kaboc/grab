@@ -5,13 +5,6 @@ import '../typedefs.dart';
 import 'finalizer.dart';
 import 'rebuild_decider.dart';
 
-/// Whether there has been at least one call to a grab method in
-/// the current build of the widget associated with a BuildContext.
-final Map<int, bool> _grabCallFlags = {};
-
-@visibleForTesting
-Map<int, bool> get grabCallFlags => Map.of(_grabCallFlags);
-
 class GrabManager {
   final CustomFinalizer _finalizer = CustomFinalizer();
 
@@ -19,12 +12,19 @@ class GrabManager {
   final Map<int, Map<int, List<RebuildDecider<Object?, Object?>>>>
       _rebuildDeciders = {};
 
+  /// Whether there has been at least one call to a grab method in
+  /// the current build of the widget associated with a BuildContext.
+  final Map<int, bool> _grabCallFlags = {};
+
   /// Whether a hook is necessary to reset all the flags in `_grabCallFlags`
   /// at the beginning of the next build.
   bool _needsResetFlagsBeforeBuild = false;
 
   @visibleForTesting
-  static void Function(({int contextHash, bool firstCall}))? onGrabCallEnd;
+  Map<int, bool> get grabCallFlags => Map.of(_grabCallFlags);
+
+  @visibleForTesting
+  void Function(({int contextHash, bool firstCall}))? onGrabCallEnd;
 
   @visibleForTesting
   Map<int, int> get listenerCounts {
