@@ -112,6 +112,9 @@ class GrabManager {
     );
 
     final cancellers = _listenerCancellers[contextHash] ??= {};
+
+    // Having no canceller for a combination of particular BuildContext
+    // and Listenable means there is no listener for that combination yet.
     if (cancellers[listenableHash] == null) {
       void listener() {
         _triggerRebuildIfNecessary(
