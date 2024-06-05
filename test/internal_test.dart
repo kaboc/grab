@@ -29,7 +29,7 @@ void main() {
     valueNotifier4.dispose();
   });
 
-  test('Handlers are removed when relevant BuildContext is GCed', () async {
+  test('Listeners are removed when relevant BuildContext is GCed', () async {
     final manager = GrabManager();
     addTearDown(manager.dispose);
 
@@ -60,26 +60,26 @@ void main() {
         selector: (notifier) => notifier,
       );
 
-    expect(manager.handlerCounts, {hash1: 2, hash2: 1});
+    expect(manager.listenerCounts, {hash1: 2, hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
     expect(valueNotifier2.hasListeners, isTrue);
 
     element1 = null;
     await forceGC();
 
-    expect(manager.handlerCounts, {hash2: 1});
+    expect(manager.listenerCounts, {hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
     expect(valueNotifier2.hasListeners, isFalse);
 
     element2 = null;
     await forceGC();
 
-    expect(manager.handlerCounts, isEmpty);
+    expect(manager.listenerCounts, isEmpty);
     expect(valueNotifier1.hasListeners, isFalse);
     expect(valueNotifier2.hasListeners, isFalse);
   });
 
-  test('Handlers are removed when relevant listenable is GCed', () async {
+  test('Listeners are removed when relevant listenable is GCed', () async {
     final manager = GrabManager();
     TestValueNotifier? tempNotifier = TestValueNotifier();
     addTearDown(() {
@@ -114,7 +114,7 @@ void main() {
         selector: (notifier) => notifier,
       );
 
-    expect(manager.handlerCounts, {hash1: 2, hash2: 2});
+    expect(manager.listenerCounts, {hash1: 2, hash2: 2});
     expect(tempNotifier.hasListeners, isTrue);
     expect(valueNotifier1.hasListeners, isTrue);
 
@@ -122,13 +122,13 @@ void main() {
     tempNotifier = null;
     await forceGC();
 
-    expect(manager.handlerCounts, {hash1: 1, hash2: 1});
+    expect(manager.listenerCounts, {hash1: 1, hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
 
     element1 = null;
     await forceGC();
 
-    expect(manager.handlerCounts, {hash2: 1});
+    expect(manager.listenerCounts, {hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
   });
 
@@ -162,14 +162,14 @@ void main() {
         selector: (notifier) => notifier,
       );
 
-    expect(manager.handlerCounts, {hash1: 2, hash2: 1});
+    expect(manager.listenerCounts, {hash1: 2, hash2: 1});
     expect(valueNotifier1.hasListeners, isTrue);
     expect(valueNotifier2.hasListeners, isTrue);
     expect(grabCallFlags, isNotEmpty);
 
     manager.dispose();
 
-    expect(manager.handlerCounts, isEmpty);
+    expect(manager.listenerCounts, isEmpty);
     expect(valueNotifier1.hasListeners, isFalse);
     expect(valueNotifier2.hasListeners, isFalse);
     expect(grabCallFlags, isEmpty);

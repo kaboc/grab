@@ -1,13 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/widgets.dart';
 
 import '../typedefs.dart';
-import 'weak_key_map.dart';
-
-typedef _Handler = ({
-  List<bool Function()> rebuildDeciders,
-  void Function() canceller,
-});
+import 'finalizer.dart';
+import 'rebuild_decider.dart';
 
 /// Whether there has been at least one call to a grab method in
 /// the current build of the widget associated with a BuildContext.
@@ -16,16 +12,12 @@ final Map<int, bool> _grabCallFlags = {};
 @visibleForTesting
 Map<int, bool> get grabCallFlags => Map.of(_grabCallFlags);
 
-extension on Listenable {
-  R listenableOrValue<R>() {
-    final listenable = this;
-    return (listenable is ValueListenable ? listenable.value : listenable) as R;
-  }
-}
-
 class GrabManager {
-  final WeakKeyMap<BuildContext, WeakKeyMap<Listenable, _Handler>> _handlers =
-      WeakKeyMap();
+  final CustomFinalizer _finalizer = CustomFinalizer();
+
+  final Map<int, Map<int, void Function()>> _listenerCancellers = {};
+  final Map<int, Map<int, List<RebuildDecider<Object?, Object?>>>>
+      _rebuildDeciders = {};
 
   /// Whether a hook is necessary to reset all the flags in `_grabCallFlags`
   /// at the beginning of the next build.
@@ -35,17 +27,21 @@ class GrabManager {
   static void Function(({int contextHash, bool firstCall}))? onGrabCallEnd;
 
   @visibleForTesting
-  Map<int, int> get handlerCounts {
+  Map<int, int> get listenerCounts {
+    // The number of cancellers is the number of existing listeners.
     return {
-      for (final hash in _handlers.keyHashes)
-        hash: _handlers[hash]!.values.length,
+      for (final hashCode in _listenerCancellers.keys)
+        hashCode: _listenerCancellers[hashCode]!.length,
     };
   }
 
   void dispose() {
     _needsResetFlagsBeforeBuild = false;
-    _handlers.reset();
     _grabCallFlags.clear();
+    _finalizer.dispose();
+
+    _listenerCancellers.clear();
+    _rebuildDeciders.clear();
   }
 
   void onBeforeBuild() {
@@ -55,53 +51,83 @@ class GrabManager {
     }
   }
 
+  void _setFinalizers({
+    required BuildContext context,
+    required Listenable listenable,
+  }) {
+    _finalizer
+      ..attachIfNotYet(
+        context,
+        onFinalized: (contextHash) {
+          if (_listenerCancellers[contextHash]?.values case final cancellers?) {
+            for (final canceller in cancellers) {
+              canceller();
+            }
+          }
+          _listenerCancellers.remove(contextHash);
+          _rebuildDeciders.remove(contextHash);
+        },
+      )
+      ..attachIfNotYet(
+        listenable,
+        onFinalized: (listenableHash) {
+          for (final contextHash in _listenerCancellers.keys) {
+            _listenerCancellers[contextHash]?[listenableHash]?.call();
+            _listenerCancellers[contextHash]?.remove(listenableHash);
+            _rebuildDeciders[contextHash]?.remove(listenableHash);
+          }
+        },
+      );
+  }
+
   S listen<R, S>({
     required BuildContext context,
     required Listenable listenable,
     required GrabSelector<R, S> selector,
   }) {
+    _setFinalizers(context: context, listenable: listenable);
+
     final contextHash = context.hashCode;
     final listenableHash = listenable.hashCode;
 
     final isFirstCallInCurrentBuild = _grabCallFlags[contextHash] == null;
-    final handler = _handlers[contextHash]?[listenableHash];
-
     if (isFirstCallInCurrentBuild) {
       _needsResetFlagsBeforeBuild = true;
       _grabCallFlags[contextHash] = true;
-      handler?.rebuildDeciders.clear();
+      _rebuildDeciders[contextHash]?.clear();
     }
 
     final wrContext = WeakReference(context);
     final wrListenable = WeakReference(listenable);
-
-    if (handler == null) {
-      void listener() => _listener(wrContext, wrListenable);
-      listenable.addListener(listener);
-
-      _handlers.putIfAbsent(
-        context,
-        WeakKeyMap<Listenable, _Handler>.new,
-        finalizer: (value) {
-          for (final handler in value.values) {
-            handler.canceller.call();
-          }
-        },
-      ).addOrUpdate(
-        listenable,
-        (
-          rebuildDeciders: [],
-          canceller: () => wrListenable.target?.removeListener(listener),
-        ),
-        finalizer: (value) => value.canceller(),
-      );
-    }
-
     final selectedValue = selector(listenable.listenableOrValue());
 
-    _handlers[contextHash]![listenableHash]!
-        .rebuildDeciders
-        .add(() => _shouldRebuild(wrListenable, selector, selectedValue));
+    _rebuildDeciders[contextHash] ??= {};
+    _rebuildDeciders[contextHash]![listenableHash] ??= [];
+    _rebuildDeciders[contextHash]![listenableHash]!.add(
+      RebuildDecider<R, S>(
+        wrListenable: wrListenable,
+        selector: selector,
+        prevSelectedValue: selectedValue,
+      ),
+    );
+
+    final cancellers = _listenerCancellers[contextHash] ??= {};
+
+    // Having no canceller for a combination of particular BuildContext
+    // and Listenable means there is no listener for that combination yet.
+    if (cancellers[listenableHash] == null) {
+      void listener() {
+        _triggerRebuildIfNecessary(
+          wrContext: wrContext,
+          wrListenable: wrListenable,
+        );
+      }
+
+      listenable.addListener(listener);
+      cancellers[listenableHash] = () {
+        wrListenable.target?.removeListener(listener);
+      };
+    }
 
     if (kDebugMode) {
       onGrabCallEnd?.call(
@@ -112,46 +138,26 @@ class GrabManager {
     return selectedValue;
   }
 
-  void _listener(
-    WeakReference<BuildContext> wrContext,
-    WeakReference<Listenable> wrListenable,
-  ) {
+  void _triggerRebuildIfNecessary({
+    required WeakReference<BuildContext> wrContext,
+    required WeakReference<Listenable> wrListenable,
+  }) {
     final elm = wrContext.target as Element?;
     final listenable = wrListenable.target;
     if (elm == null || elm.dirty || !elm.mounted || listenable == null) {
       return;
     }
 
-    final deciders =
-        _handlers[elm.hashCode]?[listenable.hashCode]?.rebuildDeciders;
+    final deciders = _rebuildDeciders[elm.hashCode]?[listenable.hashCode];
     if (deciders == null) {
       return;
     }
 
-    for (final shouldRebuild in deciders) {
-      if (shouldRebuild()) {
+    for (final decider in deciders) {
+      if (decider.shouldRebuild()) {
         elm.markNeedsBuild();
         break;
       }
     }
-  }
-
-  bool _shouldRebuild<R, S>(
-    WeakReference<Listenable> wrListenable,
-    GrabSelector<R, S> selector,
-    S? oldSelectedValue,
-  ) {
-    final listenable = wrListenable.target;
-    if (listenable == null) {
-      return false;
-    }
-
-    final newSelectedValue = selector(listenable.listenableOrValue());
-
-    // If the selected value is the Listenable itself, it means
-    // the user has chosen to make the widget get rebuilt whenever
-    // the Listenable notifies, so true is returned in that case.
-    return newSelectedValue == listenable ||
-        newSelectedValue != oldSelectedValue;
   }
 }
