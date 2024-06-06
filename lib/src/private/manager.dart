@@ -7,6 +7,8 @@ import '../typedefs.dart';
 import 'finalizer.dart';
 import 'rebuild_decider.dart';
 
+const kRebuildDecidersCleanUpDelay = Duration(seconds: 2);
+
 class GrabManager {
   final CustomFinalizer _finalizer = CustomFinalizer();
 
@@ -32,6 +34,12 @@ class GrabManager {
   void Function(({int contextHash, bool firstCall}))? onGrabCallEnd;
 
   @visibleForTesting
+  List<int> get existingContextHash => _wrContexts.keys.toList();
+
+  @visibleForTesting
+  bool get isAwaitingCleanUp => _rebuildDecidersCleanupTimer?.isActive ?? false;
+
+  @visibleForTesting
   Map<int, int> get listenerCounts {
     // The number of cancellers is the number of existing listeners.
     return {
@@ -53,7 +61,7 @@ class GrabManager {
     _rebuildDeciders.clear();
   }
 
-  void onBeforeBuild() {
+  void onBeforeBuild({Duration cleanUpDelay = kRebuildDecidersCleanUpDelay}) {
     if (_needsResetFlagsBeforeBuild) {
       _needsResetFlagsBeforeBuild = false;
       _grabCallFlags.clear();
@@ -65,7 +73,7 @@ class GrabManager {
     // otherwise clean-up is performed on every build, which is too much.
     _rebuildDecidersCleanupTimer?.cancel();
     _rebuildDecidersCleanupTimer =
-        Timer(const Duration(seconds: 2), _removeUnnecessaryRebuildDeciders);
+        Timer(cleanUpDelay, _removeUnnecessaryRebuildDeciders);
   }
 
   Future<void> _removeUnnecessaryRebuildDeciders() async {

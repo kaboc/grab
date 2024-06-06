@@ -175,6 +175,127 @@ void main() {
     expect(valueNotifier2.hasListeners, isFalse);
   });
 
+  test(
+    'BuildContext keeps being referenced if selector of grabAt() has captured '
+    'outer variable, but gets unreferenced a while after onBeforeBuild() call',
+    () async {
+      final manager = GrabManager();
+
+      UnmountableBuildContext? context = UnmountableBuildContext();
+      final hash = context.hashCode;
+
+      manager.listen(
+        context: context,
+        listenable: valueNotifier1,
+        selector: (notifier) => context,
+      );
+
+      expect(manager.existingContextHash, [hash]);
+      expect(manager.listenerCounts, {hash: 1});
+
+      context.mounted = false;
+      context = null;
+
+      // GC does not work for the BuildContext that is still referenced.
+      await forceGC();
+      expect(manager.existingContextHash, [hash]);
+      expect(manager.listenerCounts, {hash: 1});
+
+      const cleanUpDelay = Duration(milliseconds: 20);
+
+      // Clean-up (i.e. removal of selector stored in a map) is debounced
+      // while build keeps occurring at shorter intervals than clean-up delay.
+      for (var i = 0; i < 5; i++) {
+        manager.onBeforeBuild(cleanUpDelay: cleanUpDelay);
+        await Future<void>.delayed(cleanUpDelay ~/ 2);
+
+        expect(manager.existingContextHash, [hash]);
+        expect(manager.listenerCounts, {hash: 1});
+      }
+
+      // Clean-up is performed when the delay duration elapses.
+      manager.onBeforeBuild(cleanUpDelay: cleanUpDelay);
+      await Future<void>.delayed(cleanUpDelay);
+      expect(manager.existingContextHash, isEmpty);
+      expect(manager.listenerCounts, {hash: 1});
+
+      // GC works now. It triggers finalizer, which removes listeners.
+      await forceGC();
+      expect(manager.listenerCounts, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'Timer to clean up rebuild deciders is cancelled and context hashes '
+    'in _wrContexts are cleared quickly when Grab is disposed.',
+    (tester) async {
+      GrabManager? manager;
+      var visible = true;
+      int? hash;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return visible
+                  ? Grab(
+                      child: Builder(
+                        builder: (context) {
+                          manager ??= Grab.stateOf(context)?.manager;
+                          hash = context.hashCode;
+                          valueNotifier1.grab(context);
+
+                          return Column(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () => setState(() {}),
+                                child: const Text('btn1'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    setState(() => visible = false),
+                                child: const Text('btn2'),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    )
+                  : const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      final rebuildButtonFinder = find.widgetWithText(ElevatedButton, 'btn1');
+      final hideButtonFinder = find.widgetWithText(ElevatedButton, 'btn2');
+
+      // A rebuild triggers onBeforeBuild, where clean-up timer is started.
+      await tester.tap(rebuildButtonFinder);
+      await tester.pump();
+
+      // The timer ends after a fixed duration.
+      for (var i = 0; i < 5; i++) {
+        await tester.binding.delayed(kRebuildDecidersCleanUpDelay ~/ 5);
+        expect(manager?.isAwaitingCleanUp, i < 4);
+        expect(manager?.existingContextHash, [hash]);
+      }
+
+      // Another rebuild starts the timer again.
+      await tester.tap(rebuildButtonFinder);
+      await tester.pump();
+      expect(manager?.isAwaitingCleanUp, isTrue);
+      expect(manager?.existingContextHash, [hash]);
+
+      // Removing Grab before the timer ends stops the timer quickly.
+      await tester.tap(hideButtonFinder);
+      await tester.pump();
+      expect(manager?.isAwaitingCleanUp, isFalse);
+      expect(manager?.existingContextHash, isEmpty);
+    },
+  );
+
   testWidgets(
     'isFirstCallInCurrentBuild flag in listen method is only true during first '
     'call in a build even if the method is called multiple times in the build',
