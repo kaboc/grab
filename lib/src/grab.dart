@@ -46,6 +46,7 @@ final class Grab extends StatefulWidget {
 
 class _GrabState extends State<Grab> {
   late final GrabManager _manager;
+  bool _isDisposed = false;
 
   @visibleForTesting
   // ignore: diagnostic_describe_all_properties
@@ -65,12 +66,15 @@ class _GrabState extends State<Grab> {
     // before a new build.
     owner?.onBuildScheduled = () {
       originalOnBuildScheduled?.call();
-      _manager.onBeforeBuild();
+      if (!_isDisposed) {
+        _manager.onBeforeBuild();
+      }
     };
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     Grab._state = null;
     _manager.dispose();
     super.dispose();

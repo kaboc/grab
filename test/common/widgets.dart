@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class TestStatelessWidget extends StatelessWidget {
   const TestStatelessWidget({required this.funcCalledInBuild, this.child});
@@ -28,4 +28,11 @@ class _TestStatefulWidgetState extends State<TestStatefulWidget> {
     widget.funcCalledInBuild(context);
     return const SizedBox.shrink();
   }
+}
+
+class UnmountableBuildContext extends StatelessElement {
+  UnmountableBuildContext() : super(const Text(''));
+
+  @override
+  bool mounted = true;
 }
