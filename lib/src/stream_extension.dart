@@ -82,8 +82,8 @@ extension GrabStreamExtension<R> on Stream<R> {
   /// on your own, create a [Listenable] or [ValueListenable] that wraps
   /// a `Stream`, and then use Grab extension methods on it.
   /// {@endtemplate}
-  R grab(BuildContext context) {
-    return grabAt(context, (value) => value);
+  R? grab(BuildContext context) {
+    return grabAt<R?>(context, (value) => value);
   }
 
   /// Adds a subscription to the [Stream] this method is called on, and
@@ -129,7 +129,7 @@ extension GrabStreamExtension<R> on Stream<R> {
   /// evaluate its equality with the previous object using the `==` operator.
   ///
   /// {@macro grab.grabStreamExtension.notes}
-  S grabAt<S>(BuildContext context, GrabSelector<R, S> selector) {
+  S grabAt<S>(BuildContext context, GrabSelector<R?, S> selector) {
     final grabState = Grab.stateOf(context);
     if (grabState == null) {
       throw GrabMissingError();
@@ -142,7 +142,7 @@ extension GrabStreamExtension<R> on Stream<R> {
     _notifiers[contextHash] ??= {};
     _notifiers[contextHash]![streamHash] ??= StreamValueNotifier(this);
 
-    return grabState.listen(
+    return grabState.listen<R?, S>(
       context: context,
       listenable: _notifiers[contextHash]![streamHash]!,
       selector: selector,
