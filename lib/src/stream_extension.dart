@@ -3,22 +3,12 @@ import 'package:flutter/widgets.dart' show BuildContext, StreamBuilder;
 
 import 'errors.dart';
 import 'grab.dart';
+import 'private/finalizer.dart';
 import 'private/stream_value_notifier.dart';
+import 'typedefs.dart';
 
-/// ```dart
-/// _notifiers[contextHash][streamHash] = StreamValueNotifier(...);
-/// ```
+final CustomFinalizer _finalizer = CustomFinalizer();
 final Map<int, Map<int, StreamValueNotifier<Object?>>> _notifiers = {};
-
-final Finalizer<int> _finalizer = Finalizer((contextHash) {
-  final notifiers = _notifiers[contextHash];
-  if (notifiers != null) {
-    notifiers
-      ..forEach((_, v) => v.dispose())
-      ..clear();
-    _notifiers.remove(contextHash);
-  }
-});
 
 /// Extension on [Stream] to provide methods for Grab.
 extension GrabStreamExtension<R> on Stream<R> {
@@ -135,10 +125,33 @@ extension GrabStreamExtension<R> on Stream<R> {
       throw GrabMissingError();
     }
 
-    final contextHash = context.hashCode;
-    _finalizer.attach(context, contextHash, detach: context);
+    _finalizer
+      ..attachIfNotYet(
+        context,
+        onFinalized: (contextHash) {
+          if (_notifiers[contextHash] case final notifiers?) {
+            for (final notifier in notifiers.values) {
+              notifier.dispose();
+            }
+            _notifiers.remove(contextHash);
+          }
+        },
+      )
+      ..attachIfNotYet(
+        this,
+        onFinalized: (streamHash) {
+          for (final contextHash in _notifiers.keys) {
+            if (_notifiers[contextHash]?[streamHash] case final notifier?) {
+              notifier.dispose();
+            }
+            _notifiers[contextHash]?.remove(streamHash);
+          }
+        },
+      );
 
+    final contextHash = context.hashCode;
     final streamHash = hashCode;
+
     _notifiers[contextHash] ??= {};
     _notifiers[contextHash]![streamHash] ??= StreamValueNotifier(this);
 
