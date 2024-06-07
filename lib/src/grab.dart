@@ -45,7 +45,7 @@ final class Grab extends StatefulWidget {
 }
 
 class _GrabState extends State<Grab> {
-  late final GrabManager _manager;
+  final GrabManager _manager = GrabManager();
   bool _isDisposed = false;
 
   @visibleForTesting
@@ -55,8 +55,6 @@ class _GrabState extends State<Grab> {
   @override
   void initState() {
     super.initState();
-
-    _manager = GrabManager();
 
     final owner = (context as Element?)?.owner;
     final originalOnBuildScheduled = owner?.onBuildScheduled;
