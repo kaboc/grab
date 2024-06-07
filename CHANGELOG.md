@@ -1,3 +1,10 @@
+## 1.0.1
+
+- Fix memory leak that happened in some cases if `grabAt()` was used. ([#11])
+- Avoid calling a before build callback after `Grab` is disposed.
+- Fairly large internal refactoring for readability / maintainability. ([#10])
+    - As a good side effect, clean-up of unused resources may be a little more efficient.
+
 ## 1.0.0
 
 - Add dependency on meta.
@@ -152,3 +159,5 @@
 - Initial version.
 
 [#4]: https://github.com/kaboc/grab/pull/4
+[#10]: https://github.com/kaboc/grab/pull/10
+[#11]: https://github.com/kaboc/grab/pull/11

@@ -34,7 +34,7 @@ class UserProfile extends StatelessWidget {
 What this package does is only rebuild a widget according to changes in a
 `Listenable` as stated above. Despite such simplicity, however, it becomes
 a powerful state management tool if combined with some DI package such as
-[get_it] and [pot].
+[get_it] or [pot].
 
 The Listenable does not have to be passed down the widget tree. Because Grab
 works as long as a Listenable is available in any way when [grab()] or [grabAt()]
@@ -196,9 +196,9 @@ changeNotifier.grab<AnotherChangeNotifier>(context);
 
 ### Value returned by selector
 
-The value is not limited to a field value itself of the Listenable. It can be
-anything as long as it is possible to evaluate the equality with its previous
-value using the `==` operator.
+The value is not limited to a field value of the Listenable. It can be anything
+as long as it is possible to evaluate the equality with its previous value using
+the `==` operator.
 
 ```dart
 final hasEnough = notifier.grabAt(context, (item) => item.quantity > 5);
@@ -219,10 +219,11 @@ you can just take it out of the Listenable without Grab.
 Grab does not care about how a Listenable is passed around, so you can use your
 favourite DI solution to inject ones and get them anywhere in any layer.
 
-[Pottery] is a good option for this purpose. It is a package that manages the
-lifetime of [Pot] (a single-type DI container) according to the lifecycle of
-Flutter. Grab used along with it provides an experience similar to package:provider
-but with more flexibility.
+[Pottery] by the same author is a good option for this purpose. It is a package
+that helps you use [Pot] (a single-type DI container) in Flutter. Grab used
+together with it provides a similar experience to using package:provider but
+with more flexibility in that pots are available anywhere while their lifetime
+is managed according to the lifecycle of widgets.
 
 [Grab]: https://pub.dev/documentation/grab/latest/grab/Grab-class.html
 [grab()]: https://pub.dev/documentation/grab/latest/grab/GrabValueListenableExtension/grab.html
