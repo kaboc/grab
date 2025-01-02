@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grab/grab.dart';
@@ -114,4 +115,31 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'Warning is printed if grab() is used directly in a list builder',
+    (tester) async {
+      String? output;
+      final originalDebugPrint = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => output = message;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Grab(
+            child: ListView.builder(
+              itemCount: 1,
+              itemBuilder: (context, index) {
+                changeNotifier.grab(context);
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(output, contains('SliverList'));
+      debugPrint = originalDebugPrint;
+    },
+  );
 }

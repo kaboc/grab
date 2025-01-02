@@ -5,6 +5,27 @@ import 'errors.dart';
 import 'grab.dart';
 import 'typedefs.dart';
 
+void _showWarningIfApplicable(BuildContext context) {
+  if (kDebugMode && context is SliverMultiBoxAdaptorElement) {
+    debugPrint(
+      '===== Grab ===========================\n'
+      'It is discouraged to use grab()/grabAt() in the item builder of '
+      'SliverList/SliverGrid or any of their subtypes.\n\n'
+      'Items in a list/grid share the same BuildContext, and thus an update '
+      'of a Listenable causes a rebuild of all items.\n\n'
+      'It may also lead to unwanted behaviors; the rebuild conditions '
+      'registered by a previous call to grab()/grabAt() on a certain '
+      'BuildContext are unregistered and new conditions are registered on '
+      'every build of a widget associated with the BuildContext, therefore '
+      'when only some items are built, the conditions specified in other items '
+      'are lost, preventing a rebuild of those items, which should happen '
+      'otherwise.\n\n'
+      'To avoid these issues, consider using a Builder or extracting the item '
+      'as a widget class.\n',
+    );
+  }
+}
+
 // Note:
 //
 // Changing `GrabListenableExtension on Listenable` to
@@ -67,6 +88,7 @@ extension GrabListenableExtension on Listenable {
   /// Note that specifying a wrong Listenable type causes an error
   /// only at runtime.
   R grab<R extends Listenable>(BuildContext context) {
+    _showWarningIfApplicable(context);
     return grabAt<R, R>(context, (listenable) => listenable);
   }
 
@@ -139,6 +161,7 @@ extension GrabListenableExtension on Listenable {
     GrabSelector<R, S> selector,
   ) {
     if (Grab.stateOf(context) case final grabState?) {
+      _showWarningIfApplicable(context);
       return grabState.listen(
         context: context,
         listenable: this,
@@ -192,6 +215,7 @@ extension GrabValueListenableExtension<R> on ValueListenable<R> {
   /// }
   /// ```
   R grab(BuildContext context) {
+    _showWarningIfApplicable(context);
     return grabAt(context, (value) => value);
   }
 
@@ -251,6 +275,7 @@ extension GrabValueListenableExtension<R> on ValueListenable<R> {
   /// returned by the selector has remained false.
   S grabAt<S>(BuildContext context, GrabSelector<R, S> selector) {
     if (Grab.stateOf(context) case final grabState?) {
+      _showWarningIfApplicable(context);
       return grabState.listen(
         context: context,
         listenable: this,

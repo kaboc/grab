@@ -302,4 +302,31 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'Warning is printed if grabAt() is used directly in a list builder',
+    (tester) async {
+      String? output;
+      final originalDebugPrint = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => output = message;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Grab(
+            child: ListView.builder(
+              itemCount: 1,
+              itemBuilder: (context, index) {
+                changeNotifier.grabAt(context, (s) => s);
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(output, contains('SliverList'));
+      debugPrint = originalDebugPrint;
+    },
+  );
 }
