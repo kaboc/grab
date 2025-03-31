@@ -86,12 +86,11 @@ class GrabManager {
     // Holding a weak reference instead of a selector itself does not resolve
     // the above issue. It causes the selector to become unreferenced at the
     // end of `listen()`, making it already unavailable when needed later.
-    for (var i = _wrContexts.entries.length - 1; i >= 0; i--) {
-      final contextHash = _wrContexts.keys.elementAt(i);
-      if (_wrContexts[contextHash]?.target case final context?) {
-        if (!context.mounted) {
-          _wrContexts.remove(contextHash);
-          _rebuildDeciders.remove(contextHash);
+    for (var i = _wrContexts.length - 1; i >= 0; i--) {
+      if (_wrContexts.entries.elementAtOrNull(i) case final entry?) {
+        if (entry.value.target case BuildContext(mounted: false)) {
+          _wrContexts.remove(entry.key);
+          _rebuildDeciders.remove(entry.key);
         }
       }
 
