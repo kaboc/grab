@@ -5,8 +5,6 @@
 A flutter package providing extension methods to trigger a rebuild on change
 in a [Listenable] (`ChangeNotifier`, `ValueNotifier`, etc).
 
-There is a plan to support `Stream` too. Stay tuned!
-
 ## What is Grab?
 
 Grab is like a method version of `ValueListenablebuiler`, `AnimatedBuilder` or

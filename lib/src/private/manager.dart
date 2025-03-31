@@ -96,7 +96,7 @@ class GrabManager {
 
       // Prevents blocking that may be visible when there are
       // a huge number of elements in the list being looped through.
-      await Future<void>.delayed(Duration.zero);
+      await null;
     }
   }
 
@@ -157,6 +157,10 @@ class GrabManager {
     _rebuildDeciders[contextHash]![listenableHash]!.add(
       RebuildDecider<R, S>(
         wrListenable: wrListenable,
+        // RebuildDecider needs to hold not a weak reference to
+        // the selector but the selector itself. If the selector is
+        // not held, it is disposed quickly and thus cannot be used
+        // to decide whether a rebuild is necessary.
         selector: selector,
         prevSelectedValue: selectedValue,
       ),
