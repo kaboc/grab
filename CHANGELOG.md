@@ -1,3 +1,9 @@
+## 1.0.2
+
+- Print a warning if `grab()` or `grabAt()` is used in the builder of SliverList/SliverGrab.
+- Fix the index error that could happen during a clean-up.
+- Some refactorings.
+
 ## 1.0.1
 
 - Fix memory leak that happened in some cases if `grabAt()` was used. ([#11])
